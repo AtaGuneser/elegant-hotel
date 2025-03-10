@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { RoomCategory } from '@/types/room'
 
 export const roomSchema = z.object({
   number: z.string().min(1, 'Oda numarası gereklidir'),

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { registerSchema } from '@/lib/validations/auth'
-import clientPromise from '@/lib/db'
+import { registerSchema } from '@/app/lib/validations/auth'
+import clientPromise from '@/app/lib/db'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 

@@ -1,8 +1,8 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { Room } from '@/types/room'
-import { RoomCard } from './room-card'
+import { Room } from '@/app/types/room'
+import { RoomCard } from '@/app/components/rooms/room-card'
 import { useSearchParams } from 'next/navigation'
 
 async function fetchRooms (searchParams: URLSearchParams): Promise<Room[]> {
