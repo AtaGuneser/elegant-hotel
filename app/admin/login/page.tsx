@@ -2,85 +2,110 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/app/components/ui/button'
-import { Input } from '@/app/components/ui/input'
-import { useAuthStore } from '@/app/store/auth'
 import { toast } from 'react-hot-toast'
+import { Home } from 'lucide-react'
 
 export default function AdminLoginPage () {
-  const router = useRouter()
-  const { login } = useAuthStore()
+  const [email, setEmail] = useState('admin@admin.com')
+  const [password, setPassword] = useState('123456')
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      const formData = new FormData(e.currentTarget)
-      const email = formData.get('email') as string
-      const password = formData.get('password') as string
+      // First, clear any existing token
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      })
 
-      await login(email, password)
-      toast.success('Login successful')
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email, password })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed')
+      }
+
+      // Admin login successful
+      toast.success('Admin login successful')
       router.push('/admin')
-    } catch {
-      toast.error('Invalid credentials')
+    } catch (error) {
+      console.error('Login error:', error)
+      toast.error(error instanceof Error ? error.message : 'Login failed')
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className='flex min-h-screen items-center justify-center'>
-      <div className='w-full max-w-md space-y-8 rounded-lg border bg-white p-6 shadow-lg'>
-        <div className='text-center'>
-          <h2 className='text-2xl font-bold'>Admin Login</h2>
-          <p className='mt-2 text-sm text-gray-600'>
-            Please enter your credentials to access the admin panel
-          </p>
+    <div className='min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8'>
+      <div className='max-w-md w-full space-y-8'>
+        <div className='flex justify-between items-center'>
+          <h2 className='mt-6 text-center text-3xl font-extrabold text-gray-900'>
+            Admin Login
+          </h2>
+          <button
+            onClick={() => router.push('/')}
+            className='p-2 rounded-full hover:bg-gray-100'
+            title='Go to Home'
+          >
+            <Home className='h-6 w-6 text-gray-600' />
+          </button>
         </div>
-
-        <form onSubmit={handleSubmit} className='mt-8 space-y-6'>
-          <div className='space-y-4'>
+        <form className='mt-8 space-y-6' onSubmit={handleSubmit}>
+          <div className='rounded-md shadow-sm -space-y-px'>
             <div>
-              <label
-                htmlFor='email'
-                className='block text-sm font-medium text-gray-700'
-              >
-                Email
+              <label htmlFor='email' className='sr-only'>
+                Email address
               </label>
-              <Input
+              <input
                 id='email'
                 name='email'
                 type='email'
-                defaultValue='admin@admin.com'
                 required
-                className='mt-1'
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className='appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm'
+                placeholder='Email address'
               />
             </div>
-
             <div>
-              <label
-                htmlFor='password'
-                className='block text-sm font-medium text-gray-700'
-              >
+              <label htmlFor='password' className='sr-only'>
                 Password
               </label>
-              <Input
+              <input
                 id='password'
                 name='password'
                 type='password'
-                defaultValue='123456'
                 required
-                className='mt-1'
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className='appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm'
+                placeholder='Password'
               />
             </div>
           </div>
 
-          <Button type='submit' className='w-full' disabled={isLoading}>
-            {isLoading ? 'Logging in...' : 'Login'}
-          </Button>
+          <div>
+            <button
+              type='submit'
+              disabled={isLoading}
+              className='group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50'
+            >
+              {isLoading ? 'Signing in...' : 'Sign in'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

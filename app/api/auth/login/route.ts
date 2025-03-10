@@ -1,15 +1,12 @@
 import { NextResponse } from 'next/server'
-import { compare } from 'bcryptjs'
 import { sign } from 'jsonwebtoken'
 import clientPromise from '@/app/lib/db'
-import { loginSchema } from '@/app/lib/validations/auth'
+import { compare } from 'bcryptjs'
 
 export async function POST (request: Request) {
   try {
     const body = await request.json()
-
-    // Validate request body
-    const validatedData = loginSchema.parse(body)
+    const { email, password } = body
 
     // Connect to MongoDB
     const client = await clientPromise
@@ -17,24 +14,25 @@ export async function POST (request: Request) {
     const users = db.collection('users')
 
     // Find user
-    const user = await users.findOne({ email: validatedData.email })
+    const user = await users.findOne({ email })
+
     if (!user) {
       return NextResponse.json(
-        { error: 'Email veya şifre hatalı' },
+        { error: 'Invalid credentials' },
         { status: 401 }
       )
     }
 
     // Verify password
-    const isValidPassword = await compare(validatedData.password, user.password)
+    const isValidPassword = await compare(password, user.password)
     if (!isValidPassword) {
       return NextResponse.json(
-        { error: 'Email veya şifre hatalı' },
+        { error: 'Invalid credentials' },
         { status: 401 }
       )
     }
 
-    // Generate JWT token
+    // Create token
     const token = sign(
       {
         id: user._id.toString(),
@@ -42,23 +40,31 @@ export async function POST (request: Request) {
         role: user.role
       },
       process.env.JWT_SECRET!,
-      { expiresIn: '7d' } // Token 7 gün geçerli olacak
+      { expiresIn: '24h' }
     )
 
-    // Return user data and token
-    return NextResponse.json({
-      user: {
-        id: user._id.toString(),
-        name: user.name,
-        email: user.email,
-        role: user.role
-      },
-      token
+    // Set cookie with token
+    const response = NextResponse.json(
+      { message: 'Login successful' },
+      { status: 200 }
+    )
+
+    // Clear any existing token first
+    response.cookies.delete('token')
+
+    // Set new token
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 // 24 hours
     })
+
+    return response
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json(
-      { error: 'Giriş işlemi başarısız oldu' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

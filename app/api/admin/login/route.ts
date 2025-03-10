@@ -1,100 +1,48 @@
 import { NextResponse } from 'next/server'
 import { sign } from 'jsonwebtoken'
-import { compare, hash } from 'bcryptjs'
-import clientPromise from '@/app/lib/db'
-import { z } from 'zod'
-
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6)
-})
 
 export async function POST (request: Request) {
   try {
     const body = await request.json()
-    const validatedData = loginSchema.parse(body)
+    const { email, password } = body
 
-    // Connect to MongoDB
-    const client = await clientPromise
-    const db = client.db('elegant-hotel')
-    const users = db.collection('users')
-
-    // Find user
-    let user = await users.findOne({ email: validatedData.email })
-
-    // If no user found and credentials match default admin, create admin user
-    if (
-      !user &&
-      validatedData.email === 'admin@admin.com' &&
-      validatedData.password === '123456'
-    ) {
-      const hashedPassword = await hash('123456', 10)
-      const result = await users.insertOne({
-        email: 'admin@admin.com',
-        password: hashedPassword,
-        name: 'Admin',
-        role: 'admin',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      })
-      user = {
-        _id: result.insertedId,
-        email: 'admin@admin.com',
-        password: hashedPassword,
-        name: 'Admin',
-        role: 'admin'
-      }
-    }
-
-    if (!user) {
+    // Admin credentials check
+    if (email !== 'admin@admin.com' || password !== '123456') {
       return NextResponse.json(
-        { message: 'Email or password is incorrect' },
+        { error: 'Invalid credentials' },
         { status: 401 }
       )
     }
 
-    // Check if user is admin
-    if (user.role !== 'admin') {
-      return NextResponse.json(
-        { message: 'You do not have permission to access this page' },
-        { status: 403 }
-      )
-    }
-
-    // Verify password
-    const isValidPassword = await compare(validatedData.password, user.password)
-    if (!isValidPassword) {
-      return NextResponse.json(
-        { message: 'Email or password is incorrect' },
-        { status: 401 }
-      )
-    }
-
-    // Generate JWT token
+    // Create admin token
     const token = sign(
-      {
-        id: user._id.toString(),
-        email: user.email,
-        role: user.role
-      },
+      { id: 'admin', email, role: 'admin' },
       process.env.JWT_SECRET!,
-      { expiresIn: '7d' }
+      { expiresIn: '24h' }
     )
 
-    // Return user data and token
-    return NextResponse.json({
-      user: {
-        id: user._id.toString(),
-        name: user.name,
-        email: user.email,
-        role: user.role
-      },
-      token
+    // Set cookie with admin token
+    const response = NextResponse.json(
+      { message: 'Login successful' },
+      { status: 200 }
+    )
+
+    // Clear any existing token first
+    response.cookies.delete('token')
+
+    // Set new admin token
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 // 24 hours
     })
+
+    return response
   } catch (error) {
-    console.error('Error during admin login:', error)
+    console.error('Login error:', error)
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }
