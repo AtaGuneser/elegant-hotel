@@ -17,6 +17,7 @@ import { loginSchema } from '@/app/lib/validations/auth'
 import { useAuthStore } from '@/app/store/auth'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Cookies from 'js-cookie'
 
 type LoginFormValues = z.infer<typeof loginSchema>
 
@@ -36,7 +37,6 @@ export function LoginForm () {
   async function onSubmit (data: LoginFormValues) {
     setIsLoading(true)
     try {
-      // TODO: Implement actual login API call
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,8 +48,15 @@ export function LoginForm () {
       }
 
       const result = await response.json()
+
+      // Store token in cookie (7 days expiry)
+      Cookies.set('token', result.token, { expires: 7 })
+
+      // Update auth store
       setUser(result.user)
       setToken(result.token)
+
+      // Redirect to dashboard
       router.push('/dashboard')
     } catch (error) {
       console.error('Login error:', error)

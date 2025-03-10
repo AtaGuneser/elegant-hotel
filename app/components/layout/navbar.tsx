@@ -1,50 +1,138 @@
 'use client'
 
 import Link from 'next/link'
-import { Button } from '../ui/button'
+import { usePathname } from 'next/navigation'
+import { Button } from '@/app/components/ui/button'
 import { useAuthStore } from '@/app/store/auth'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger
+} from '@/app/components/ui/sheet'
+import { Menu } from 'lucide-react'
 
-export function Navbar () {
-  const { user, isAuthenticated, logout } = useAuthStore()
+const navigation = [
+  { name: 'Home', href: '/' },
+  { name: 'Rooms', href: '/rooms' },
+  { name: 'About', href: '/about' },
+  { name: 'Contact', href: '/contact' }
+]
+
+export default function Navbar () {
+  const pathname = usePathname()
+  const { user, logout } = useAuthStore()
 
   return (
-    <nav className='border-b'>
-      <div className='container flex h-16 items-center justify-between'>
+    <header className='sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60'>
+      <nav className='container mx-auto flex h-16 items-center justify-between px-4'>
         <Link href='/' className='text-xl font-bold'>
           Elegant Hotel
         </Link>
 
-        <div className='flex items-center gap-4'>
-          <Link href='/rooms'>
-            <Button variant='ghost'>Odalar</Button>
+        {/* Desktop Navigation */}
+        <div className='hidden md:flex md:items-center md:space-x-4'>
+          {navigation.map(item => (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                pathname === item.href
+                  ? 'text-primary'
+                  : 'text-muted-foreground'
+              }`}
+            >
+              {item.name}
+            </Link>
+          ))}
+          <Link href='/admin/login'>
+            <Button variant='outline' size='sm'>
+              Admin Panel
+            </Button>
           </Link>
-
-          {isAuthenticated ? (
+          {user ? (
             <>
-              <Link href='/bookings'>
-                <Button variant='ghost'>Rezervasyonlarım</Button>
-              </Link>
-              {user?.role === 'admin' && (
-                <Link href='/admin'>
-                  <Button variant='ghost'>Admin Panel</Button>
-                </Link>
-              )}
-              <Button variant='ghost' onClick={() => logout()}>
-                Çıkış Yap
+              <span className='text-sm font-medium text-muted-foreground'>
+                {user.name}
+              </span>
+              <Button variant='ghost' size='sm' onClick={() => logout()}>
+                Logout
               </Button>
             </>
           ) : (
             <>
               <Link href='/auth/login'>
-                <Button variant='ghost'>Giriş Yap</Button>
+                <Button variant='ghost' size='sm'>
+                  Login
+                </Button>
               </Link>
               <Link href='/auth/register'>
-                <Button variant='default'>Kayıt Ol</Button>
+                <Button size='sm'>Register</Button>
               </Link>
             </>
           )}
         </div>
-      </div>
-    </nav>
+
+        {/* Mobile Navigation */}
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant='ghost' size='icon' className='md:hidden'>
+              <Menu className='h-5 w-5' />
+            </Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>Menu</SheetTitle>
+            </SheetHeader>
+            <div className='mt-4 flex flex-col space-y-4'>
+              {navigation.map(item => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`text-sm font-medium transition-colors hover:text-primary ${
+                    pathname === item.href
+                      ? 'text-primary'
+                      : 'text-muted-foreground'
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+              <Link href='/admin/login'>
+                <Button variant='outline' className='w-full'>
+                  Admin Panel
+                </Button>
+              </Link>
+              {user ? (
+                <>
+                  <span className='text-sm font-medium text-muted-foreground'>
+                    {user.name}
+                  </span>
+                  <Button
+                    variant='ghost'
+                    className='w-full'
+                    onClick={() => logout()}
+                  >
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link href='/auth/login'>
+                    <Button variant='ghost' className='w-full'>
+                      Login
+                    </Button>
+                  </Link>
+                  <Link href='/auth/register'>
+                    <Button className='w-full'>Register</Button>
+                  </Link>
+                </>
+              )}
+            </div>
+          </SheetContent>
+        </Sheet>
+      </nav>
+    </header>
   )
 }

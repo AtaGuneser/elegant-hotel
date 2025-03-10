@@ -1,55 +1,29 @@
 import { NextResponse } from 'next/server'
 import clientPromise from '@/app/lib/db'
-import { RoomCategory } from '@/app/types/room'
+import { roomSchema } from '@/app/lib/validations/room'
+import { verify } from 'jsonwebtoken'
 
-interface RoomQuery {
-  category?: RoomCategory
-  price?: {
-    $gte?: number
-    $lte?: number
-  }
-  capacity?: {
-    $gte?: number
-  }
+interface JwtPayload {
+  id: string
+  email: string
+  role: string
 }
 
-export async function GET (request: Request) {
+export async function GET () {
   try {
-    const { searchParams } = new URL(request.url)
-    const category = searchParams.get('category') as RoomCategory | null
-    const minPrice = searchParams.get('minPrice')
-      ? Number(searchParams.get('minPrice'))
-      : undefined
-    const maxPrice = searchParams.get('maxPrice')
-      ? Number(searchParams.get('maxPrice'))
-      : undefined
-    const capacity = searchParams.get('capacity')
-      ? Number(searchParams.get('capacity'))
-      : undefined
-
-    // Build query
-    const query: RoomQuery = {}
-    if (category) query.category = category
-    if (minPrice !== undefined) query.price = { $gte: minPrice }
-    if (maxPrice !== undefined) query.price = { ...query.price, $lte: maxPrice }
-    if (capacity !== undefined) query.capacity = { $gte: capacity }
-
-    // Connect to MongoDB
     const client = await clientPromise
     const db = client.db('elegant-hotel')
     const rooms = db.collection('rooms')
 
-    // Fetch rooms with filters
-    const result = await rooms.find(query).toArray()
+    const result = await rooms.find().toArray()
 
-    // Transform _id to id
-    const transformedRooms = result.map(room => ({
-      ...room,
-      id: room._id.toString(),
-      _id: undefined
-    }))
-
-    return NextResponse.json(transformedRooms)
+    return NextResponse.json(
+      result.map(room => ({
+        ...room,
+        id: room._id.toString(),
+        _id: undefined
+      }))
+    )
   } catch (error) {
     console.error('Error fetching rooms:', error)
     return NextResponse.json(
@@ -61,30 +35,103 @@ export async function GET (request: Request) {
 
 export async function POST (request: Request) {
   try {
-    const body = await request.json()
-
-    // Validate room data (you might want to add Zod validation here)
-    const roomData = {
-      ...body,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      isAvailable: true
+    // Get token from cookie
+    const token = request.headers
+      .get('cookie')
+      ?.split('token=')[1]
+      ?.split(';')[0]
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Connect to MongoDB
+    const decoded = verify(token, process.env.JWT_SECRET!) as JwtPayload
+    if (decoded.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const body = await request.json()
+    console.log('Received room data:', body)
+
+    try {
+      const validatedData = roomSchema.parse(body)
+      console.log('Validated room data:', validatedData)
+    } catch (validationError: unknown) {
+      console.error('Validation error:', validationError)
+      if (
+        validationError &&
+        typeof validationError === 'object' &&
+        'issues' in validationError
+      ) {
+        const issues = (
+          validationError as {
+            issues: Array<{
+              code: string
+              type?: string
+              minimum?: number
+              path: string[]
+            }>
+          }
+        ).issues.map(issue => {
+          switch (issue.code) {
+            case 'too_small':
+              if (issue.type === 'string') {
+                return `${issue.path.join('.')} must be at least ${
+                  issue.minimum
+                } characters`
+              }
+              return `${issue.path.join('.')} must be at least ${issue.minimum}`
+            case 'invalid_type':
+              return `${issue.path.join('.')} must be a valid value`
+            case 'invalid_enum_value':
+              return `${issue.path.join(
+                '.'
+              )} must be a valid category (Basic, Premium, Suite)`
+            case 'invalid_url':
+              return `${issue.path.join('.')} must be a valid URL`
+            default:
+              return `${issue.path.join('.')} is invalid`
+          }
+        })
+        return NextResponse.json(
+          { error: 'Validation failed', details: issues },
+          { status: 400 }
+        )
+      }
+      return NextResponse.json({ error: 'Validation failed' }, { status: 400 })
+    }
+
     const client = await clientPromise
     const db = client.db('elegant-hotel')
     const rooms = db.collection('rooms')
 
-    // Insert room
-    const result = await rooms.insertOne(roomData)
+    // Check if room number already exists
+    const existingRoom = await rooms.findOne({ number: body.number })
+    if (existingRoom) {
+      return NextResponse.json(
+        { error: 'Bu oda numarası zaten kullanılıyor' },
+        { status: 400 }
+      )
+    }
+
+    const result = await rooms.insertOne({
+      ...body,
+      isAvailable: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    })
 
     return NextResponse.json({
       id: result.insertedId.toString(),
-      ...roomData
+      ...body,
+      isAvailable: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
     })
   } catch (error) {
     console.error('Error creating room:', error)
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

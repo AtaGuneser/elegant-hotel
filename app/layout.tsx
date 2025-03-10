@@ -3,13 +3,13 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { cn } from '@/lib/utils'
 import { Providers } from './components/providers'
-import { Navbar } from './components/layout/navbar'
+import ClientLayout from './components/layout/client-layout'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Elegant Hotel - Luxury Stay',
-  description: 'Book your perfect stay at Elegant Hotel'
+  title: 'Elegant Hotel',
+  description: 'Luxury hotel booking system'
 }
 
 export default function RootLayout ({
@@ -26,12 +26,7 @@ export default function RootLayout ({
         )}
       >
         <Providers>
-          <div className='flex min-h-screen flex-col'>
-            <Navbar />
-            <main className='flex-1 container mx-auto px-4 py-8'>
-              {children}
-            </main>
-          </div>
+          <ClientLayout>{children}</ClientLayout>
         </Providers>
       </body>
     </html>
