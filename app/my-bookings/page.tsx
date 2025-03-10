@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { toast } from 'react-hot-toast'
 import {
   Card,
@@ -22,6 +23,7 @@ interface Booking {
     number: string
     category: string
     price: number
+    images: string[]
   }
 }
 
@@ -116,41 +118,54 @@ export default function MyBookingsPage () {
         ) : (
           bookings.map(booking => (
             <Card key={booking._id}>
-              <CardHeader>
-                <CardTitle>Room {booking.room.number}</CardTitle>
-                <CardDescription>{booking.room.category}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className='grid md:grid-cols-2 gap-4'>
-                  <div>
-                    <p className='text-sm text-gray-500'>Check-in</p>
-                    <p className='font-medium'>
-                      {new Date(booking.checkIn).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className='text-sm text-gray-500'>Check-out</p>
-                    <p className='font-medium'>
-                      {new Date(booking.checkOut).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className='text-sm text-gray-500'>Guests</p>
-                    <p className='font-medium'>{booking.guests}</p>
-                  </div>
-                  <div>
-                    <p className='text-sm text-gray-500'>Price per night</p>
-                    <p className='font-medium'>${booking.room.price}</p>
-                  </div>
+              <div className='grid md:grid-cols-3 gap-6'>
+                <div className='relative aspect-[4/3] md:aspect-[3/2]'>
+                  <Image
+                    src={booking.room.images[0]}
+                    alt={`Room ${booking.room.number}`}
+                    fill
+                    className='object-cover rounded-lg p-1'
+                    sizes='(max-width: 768px) 100vw, 33vw'
+                  />
                 </div>
-                <Button
-                  variant='destructive'
-                  className='mt-4'
-                  onClick={() => handleCancelBooking(booking._id)}
-                >
-                  Cancel Booking
-                </Button>
-              </CardContent>
+                <div className='md:col-span-2 p-6'>
+                  <CardHeader className='p-0 mb-4'>
+                    <CardTitle>Room {booking.room.number}</CardTitle>
+                    <CardDescription>{booking.room.category}</CardDescription>
+                  </CardHeader>
+                  <CardContent className='p-0'>
+                    <div className='grid md:grid-cols-2 gap-4'>
+                      <div>
+                        <p className='text-sm text-gray-500'>Check-in</p>
+                        <p className='font-medium'>
+                          {new Date(booking.checkIn).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className='text-sm text-gray-500'>Check-out</p>
+                        <p className='font-medium'>
+                          {new Date(booking.checkOut).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className='text-sm text-gray-500'>Guests</p>
+                        <p className='font-medium'>{booking.guests}</p>
+                      </div>
+                      <div>
+                        <p className='text-sm text-gray-500'>Price per night</p>
+                        <p className='font-medium'>${booking.room.price}</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant='destructive'
+                      className='mt-4 cursor-pointer'
+                      onClick={() => handleCancelBooking(booking._id)}
+                    >
+                      Cancel Booking
+                    </Button>
+                  </CardContent>
+                </div>
+              </div>
             </Card>
           ))
         )}

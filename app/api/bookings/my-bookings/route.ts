@@ -63,7 +63,8 @@ export async function GET (request: Request) {
             status: 1,
             'room.number': 1,
             'room.category': 1,
-            'room.price': 1
+            'room.price': 1,
+            'room.images': 1
           }
         }
       ])

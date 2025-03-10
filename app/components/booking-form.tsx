@@ -126,7 +126,11 @@ export function BookingForm ({ room }: BookingFormProps) {
           }
         />
       </div>
-      <Button type='submit' className='w-full' disabled={isLoading}>
+      <Button
+        type='submit'
+        className='w-full cursor-pointer'
+        disabled={isLoading}
+      >
         {isLoading ? 'Creating Booking...' : 'Book Now'}
       </Button>
     </form>
