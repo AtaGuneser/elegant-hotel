@@ -51,7 +51,7 @@ export default function AdminLayout ({
   }
 
   return (
-    <div className='min-h-screen bg-gray-100'>
+    <div className='min-h-screen'>
       {/* Sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-50 w-64 transform bg-white shadow-lg transition-transform duration-200 ease-in-out ${
@@ -103,18 +103,6 @@ export default function AdminLayout ({
           isSidebarOpen ? 'md:pl-64' : ''
         }`}
       >
-        {/* Top Bar */}
-        <div className='flex h-16 items-center justify-between border-b bg-white px-4'>
-          <Button
-            variant='ghost'
-            size='icon'
-            onClick={() => setIsSidebarOpen(true)}
-            className='md:hidden'
-          >
-            <Menu className='h-5 w-5' />
-          </Button>
-        </div>
-
         {/* Page Content */}
         <main className='flex-1 p-4'>{children}</main>
       </div>

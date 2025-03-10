@@ -108,7 +108,7 @@ export async function POST (request: Request) {
     const existingRoom = await rooms.findOne({ number: body.number })
     if (existingRoom) {
       return NextResponse.json(
-        { error: 'Bu oda numarası zaten kullanılıyor' },
+        { error: 'This room number is already in use' },
         { status: 400 }
       )
     }

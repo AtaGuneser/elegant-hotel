@@ -3,7 +3,15 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
-import { Home } from 'lucide-react'
+import { Button } from '@/app/components/ui/button'
+import { Input } from '@/app/components/ui/input'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@/app/components/ui/card'
 
 export default function AdminLoginPage () {
   const [email, setEmail] = useState('admin@admin.com')
@@ -16,18 +24,11 @@ export default function AdminLoginPage () {
     setIsLoading(true)
 
     try {
-      // First, clear any existing token
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
-      })
-
-      const response = await fetch('/api/admin/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        credentials: 'include',
         body: JSON.stringify({ email, password })
       })
 
@@ -37,11 +38,14 @@ export default function AdminLoginPage () {
         throw new Error(data.error || 'Login failed')
       }
 
-      // Admin login successful
-      toast.success('Admin login successful')
+      // Check if user is admin
+      if (data.role !== 'admin') {
+        throw new Error('Access denied. Admin privileges required.')
+      }
+
+      toast.success('Login successful')
       router.push('/admin')
     } catch (error) {
-      console.error('Login error:', error)
       toast.error(error instanceof Error ? error.message : 'Login failed')
     } finally {
       setIsLoading(false)
@@ -49,65 +53,54 @@ export default function AdminLoginPage () {
   }
 
   return (
-    <div className='min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8'>
-      <div className='max-w-md w-full space-y-8'>
-        <div className='flex justify-between items-center'>
-          <h2 className='mt-6 text-center text-3xl font-extrabold text-gray-900'>
-            Admin Login
-          </h2>
-          <button
-            onClick={() => router.push('/')}
-            className='p-2 rounded-full hover:bg-gray-100'
-            title='Go to Home'
-          >
-            <Home className='h-6 w-6 text-gray-600' />
-          </button>
-        </div>
-        <form className='mt-8 space-y-6' onSubmit={handleSubmit}>
-          <div className='rounded-md shadow-sm -space-y-px'>
+    <div className='min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8'>
+      <Card className='w-full max-w-md'>
+        <CardHeader>
+          <CardTitle>Admin Login</CardTitle>
+          <CardDescription>
+            Please sign in with your admin credentials
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className='space-y-4'>
             <div>
-              <label htmlFor='email' className='sr-only'>
-                Email address
+              <label
+                htmlFor='email'
+                className='block text-sm font-medium text-gray-700'
+              >
+                Email
               </label>
-              <input
+              <Input
                 id='email'
-                name='email'
                 type='email'
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className='appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm'
-                placeholder='Email address'
+                className='mt-1 block w-full'
               />
             </div>
             <div>
-              <label htmlFor='password' className='sr-only'>
+              <label
+                htmlFor='password'
+                className='block text-sm font-medium text-gray-700'
+              >
                 Password
               </label>
-              <input
+              <Input
                 id='password'
-                name='password'
                 type='password'
                 required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className='appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm'
-                placeholder='Password'
+                className='mt-1 block w-full'
               />
             </div>
-          </div>
-
-          <div>
-            <button
-              type='submit'
-              disabled={isLoading}
-              className='group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50'
-            >
+            <Button type='submit' className='w-full' disabled={isLoading}>
               {isLoading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
-        </form>
-      </div>
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   )
 }

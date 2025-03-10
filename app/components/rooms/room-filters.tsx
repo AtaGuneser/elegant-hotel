@@ -74,11 +74,11 @@ export function RoomFilters () {
           name='category'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Oda Tipi</FormLabel>
+              <FormLabel>Room Type</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder='Oda tipi seçin' />
+                    <SelectValue placeholder='Select room type' />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -97,7 +97,7 @@ export function RoomFilters () {
           name='minPrice'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Minimum Fiyat</FormLabel>
+              <FormLabel>Minimum Price</FormLabel>
               <FormControl>
                 <Input
                   type='number'
@@ -116,7 +116,7 @@ export function RoomFilters () {
           name='maxPrice'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Maksimum Fiyat</FormLabel>
+              <FormLabel>Maximum Price</FormLabel>
               <FormControl>
                 <Input
                   type='number'
@@ -135,7 +135,7 @@ export function RoomFilters () {
           name='capacity'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Minimum Kapasite</FormLabel>
+              <FormLabel>Minimum Capacity</FormLabel>
               <FormControl>
                 <Input
                   type='number'
@@ -154,7 +154,7 @@ export function RoomFilters () {
           name='startDate'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Giriş Tarihi</FormLabel>
+              <FormLabel>Check-in Date</FormLabel>
               <FormControl>
                 <DatePicker
                   selected={field.value}
@@ -172,7 +172,7 @@ export function RoomFilters () {
           name='endDate'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Çıkış Tarihi</FormLabel>
+              <FormLabel>Check-out Date</FormLabel>
               <FormControl>
                 <DatePicker
                   selected={field.value}
@@ -186,7 +186,7 @@ export function RoomFilters () {
         />
 
         <Button type='submit' className='w-full'>
-          Filtrele
+          Filter
         </Button>
       </form>
     </Form>

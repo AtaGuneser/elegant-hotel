@@ -1,45 +1,56 @@
 import { NextResponse } from 'next/server'
 import { verify } from 'jsonwebtoken'
-import clientPromise from '@/app/lib/db'
 import { ObjectId } from 'mongodb'
+import clientPromise from '@/app/lib/db'
 
 export async function GET (request: Request) {
   try {
-    // Get token from cookie
     const token = request.headers
       .get('cookie')
       ?.split('token=')[1]
       ?.split(';')[0]
 
     if (!token) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+      return NextResponse.json({ error: 'No token provided' }, { status: 401 })
     }
 
-    // Verify token
     const decoded = verify(token, process.env.JWT_SECRET!) as {
       id: string
       email: string
       role: string
     }
 
-    // Get user from database
     const client = await clientPromise
-    const db = client.db('elegant-hotel')
-    const users = db.collection('users')
-    const user = await users.findOne({ _id: new ObjectId(decoded.id) })
+    const db = client.db()
+    const user = await db.collection('users').findOne({
+      _id: new ObjectId(decoded.id)
+    })
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    // If user is admin, return admin role
+    if (user.role === 'admin') {
+      return NextResponse.json({
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        role: 'admin'
+      })
+    }
+
     return NextResponse.json({
-      id: user._id.toString(),
+      id: user._id,
       email: user.email,
       name: user.name,
-      role: user.role
+      role: 'user'
     })
   } catch (error) {
     console.error('Auth check error:', error)
-    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+    return NextResponse.json(
+      { error: 'Authentication failed' },
+      { status: 401 }
+    )
   }
 }

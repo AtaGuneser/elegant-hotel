@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
-import { tr } from 'date-fns/locale'
+import { enUS } from 'date-fns/locale'
 
 interface RecentBooking {
   id: string
@@ -49,7 +49,7 @@ export function RecentBookings () {
     return (
       <div className='flex h-32 items-center justify-center'>
         <p className='text-sm text-gray-500'>
-          Rezervasyonlar yüklenirken bir hata oluştu
+          An error occurred while loading bookings
         </p>
       </div>
     )
@@ -58,7 +58,7 @@ export function RecentBookings () {
   if (!data?.length) {
     return (
       <div className='flex h-32 items-center justify-center'>
-        <p className='text-sm text-gray-500'>Henüz rezervasyon bulunmuyor</p>
+        <p className='text-sm text-gray-500'>No bookings found</p>
       </div>
     )
   }
@@ -72,25 +72,25 @@ export function RecentBookings () {
               scope='col'
               className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'
             >
-              Oda
+              Room
             </th>
             <th
               scope='col'
               className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'
             >
-              Müşteri
+              Customer
             </th>
             <th
               scope='col'
               className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'
             >
-              Tarih
+              Date
             </th>
             <th
               scope='col'
               className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'
             >
-              Durum
+              Status
             </th>
           </tr>
         </thead>
@@ -116,12 +116,12 @@ export function RecentBookings () {
               <td className='whitespace-nowrap px-6 py-4'>
                 <div className='text-sm text-gray-900'>
                   {format(new Date(booking.checkIn), 'd MMM yyyy', {
-                    locale: tr
+                    locale: enUS
                   })}
                 </div>
                 <div className='text-sm text-gray-500'>
                   {format(new Date(booking.checkOut), 'd MMM yyyy', {
-                    locale: tr
+                    locale: enUS
                   })}
                 </div>
               </td>

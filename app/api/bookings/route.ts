@@ -107,7 +107,7 @@ export async function POST (request: Request) {
       _id: new ObjectId(validatedData.roomId)
     })
     if (!room) {
-      return NextResponse.json({ error: 'Oda bulunamadı' }, { status: 404 })
+      return NextResponse.json({ error: 'Room not found' }, { status: 404 })
     }
 
     // Check room availability
@@ -124,7 +124,7 @@ export async function POST (request: Request) {
 
     if (existingBooking) {
       return NextResponse.json(
-        { error: 'Bu tarihler için oda müsait değil' },
+        { error: 'Room is not available for these dates' },
         { status: 400 }
       )
     }

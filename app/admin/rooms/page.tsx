@@ -114,7 +114,7 @@ export default function RoomsPage () {
     mutationFn: deleteRoom,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rooms'] })
-      toast.success('Oda başarıyla silindi')
+      toast.success('Room deleted successfully')
     },
     onError: (error: Error) => {
       toast.error(error.message)
@@ -132,13 +132,13 @@ export default function RoomsPage () {
   return (
     <div className='container mx-auto px-4 py-8'>
       <div className='flex justify-between items-center mb-6'>
-        <h1 className='text-2xl font-bold'>Oda Yönetimi</h1>
+        <h1 className='text-2xl font-bold'>Room Management</h1>
         <button
           onClick={() => setIsAddModalOpen(true)}
           className='flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700'
         >
           <Plus size={20} />
-          Yeni Oda Ekle
+          Add New Room
         </button>
       </div>
 
@@ -147,22 +147,22 @@ export default function RoomsPage () {
           <thead className='bg-gray-50'>
             <tr>
               <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                Oda Numarası
+                Room Number
               </th>
               <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                Kategori
+                Category
               </th>
               <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                Fiyat
+                Price
               </th>
               <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                Kapasite
+                Capacity
               </th>
               <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                Durum
+                Status
               </th>
               <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                İşlemler
+                Actions
               </th>
             </tr>
           </thead>
@@ -172,9 +172,9 @@ export default function RoomsPage () {
                 <td className='px-6 py-4 whitespace-nowrap'>{room.number}</td>
                 <td className='px-6 py-4 whitespace-nowrap'>{room.category}</td>
                 <td className='px-6 py-4 whitespace-nowrap'>
-                  {room.price.toLocaleString('tr-TR', {
+                  {room.price.toLocaleString('en-US', {
                     style: 'currency',
-                    currency: 'TRY'
+                    currency: 'USD'
                   })}
                 </td>
                 <td className='px-6 py-4 whitespace-nowrap'>{room.capacity}</td>
@@ -186,7 +186,7 @@ export default function RoomsPage () {
                         : 'bg-red-100 text-red-800'
                     }`}
                   >
-                    {room.isAvailable ? 'Müsait' : 'Dolu'}
+                    {room.isAvailable ? 'Available' : 'Occupied'}
                   </span>
                 </td>
                 <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
@@ -202,7 +202,7 @@ export default function RoomsPage () {
                   <button
                     onClick={() => {
                       if (
-                        confirm('Bu odayı silmek istediğinizden emin misiniz?')
+                        confirm('Are you sure you want to delete this room?')
                       ) {
                         deleteMutation.mutate(room.id)
                       }
@@ -222,7 +222,7 @@ export default function RoomsPage () {
       {isAddModalOpen && (
         <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center'>
           <div className='bg-white rounded-lg p-6 w-full max-w-md'>
-            <h2 className='text-xl font-bold mb-4'>Yeni Oda Ekle</h2>
+            <h2 className='text-xl font-bold mb-4'>Add New Room</h2>
             <form
               onSubmit={e => {
                 e.preventDefault()
@@ -254,7 +254,7 @@ export default function RoomsPage () {
             >
               <div>
                 <label className='block text-sm font-medium text-gray-700'>
-                  Oda Numarası
+                  Room Number
                 </label>
                 <input
                   type='text'
@@ -265,7 +265,7 @@ export default function RoomsPage () {
               </div>
               <div>
                 <label className='block text-sm font-medium text-gray-700'>
-                  Kategori
+                  Category
                 </label>
                 <select
                   name='category'
@@ -279,7 +279,7 @@ export default function RoomsPage () {
               </div>
               <div>
                 <label className='block text-sm font-medium text-gray-700'>
-                  Fiyat
+                  Price
                 </label>
                 <input
                   type='number'
@@ -291,7 +291,7 @@ export default function RoomsPage () {
               </div>
               <div>
                 <label className='block text-sm font-medium text-gray-700'>
-                  Açıklama
+                  Description
                 </label>
                 <textarea
                   name='description'
@@ -301,7 +301,7 @@ export default function RoomsPage () {
               </div>
               <div>
                 <label className='block text-sm font-medium text-gray-700'>
-                  Özellikler (virgülle ayırın)
+                  Amenities (comma separated)
                 </label>
                 <input
                   type='text'
@@ -312,7 +312,7 @@ export default function RoomsPage () {
               </div>
               <div>
                 <label className='block text-sm font-medium text-gray-700'>
-                  Resimler (virgülle ayırın)
+                  Images (comma separated)
                 </label>
                 <input
                   type='text'
@@ -323,7 +323,7 @@ export default function RoomsPage () {
               </div>
               <div>
                 <label className='block text-sm font-medium text-gray-700'>
-                  Kapasite
+                  Capacity
                 </label>
                 <input
                   type='number'
@@ -339,13 +339,13 @@ export default function RoomsPage () {
                   onClick={() => setIsAddModalOpen(false)}
                   className='px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50'
                 >
-                  İptal
+                  Cancel
                 </button>
                 <button
                   type='submit'
                   className='px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700'
                 >
-                  Ekle
+                  Add
                 </button>
               </div>
             </form>
@@ -357,7 +357,7 @@ export default function RoomsPage () {
       {isEditModalOpen && selectedRoom && (
         <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center'>
           <div className='bg-white rounded-lg p-6 w-full max-w-md'>
-            <h2 className='text-xl font-bold mb-4'>Oda Düzenle</h2>
+            <h2 className='text-xl font-bold mb-4'>Edit Room</h2>
             <form
               onSubmit={e => {
                 e.preventDefault()
@@ -392,7 +392,7 @@ export default function RoomsPage () {
             >
               <div>
                 <label className='block text-sm font-medium text-gray-700'>
-                  Oda Numarası
+                  Room Number
                 </label>
                 <input
                   type='text'
@@ -404,7 +404,7 @@ export default function RoomsPage () {
               </div>
               <div>
                 <label className='block text-sm font-medium text-gray-700'>
-                  Kategori
+                  Category
                 </label>
                 <select
                   name='category'
@@ -419,7 +419,7 @@ export default function RoomsPage () {
               </div>
               <div>
                 <label className='block text-sm font-medium text-gray-700'>
-                  Fiyat
+                  Price
                 </label>
                 <input
                   type='number'
@@ -432,7 +432,7 @@ export default function RoomsPage () {
               </div>
               <div>
                 <label className='block text-sm font-medium text-gray-700'>
-                  Açıklama
+                  Description
                 </label>
                 <textarea
                   name='description'
@@ -443,7 +443,7 @@ export default function RoomsPage () {
               </div>
               <div>
                 <label className='block text-sm font-medium text-gray-700'>
-                  Özellikler (virgülle ayırın)
+                  Amenities (comma separated)
                 </label>
                 <input
                   type='text'
@@ -455,7 +455,7 @@ export default function RoomsPage () {
               </div>
               <div>
                 <label className='block text-sm font-medium text-gray-700'>
-                  Resimler (virgülle ayırın)
+                  Images (comma separated)
                 </label>
                 <input
                   type='text'
@@ -467,7 +467,7 @@ export default function RoomsPage () {
               </div>
               <div>
                 <label className='block text-sm font-medium text-gray-700'>
-                  Kapasite
+                  Capacity
                 </label>
                 <input
                   type='number'
@@ -487,13 +487,13 @@ export default function RoomsPage () {
                   }}
                   className='px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50'
                 >
-                  İptal
+                  Cancel
                 </button>
                 <button
                   type='submit'
                   className='px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700'
                 >
-                  Güncelle
+                  Update
                 </button>
               </div>
             </form>

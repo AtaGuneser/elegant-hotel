@@ -16,7 +16,6 @@ const navigation = [
 export default function Navbar () {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(false)
   const [userName, setUserName] = useState('')
   const pathname = usePathname()
   const router = useRouter()
@@ -32,17 +31,14 @@ export default function Navbar () {
 
         if (response.ok) {
           setIsLoggedIn(true)
-          setIsAdmin(data.role === 'admin')
           setUserName(data.name)
         } else {
           setIsLoggedIn(false)
-          setIsAdmin(false)
           setUserName('')
         }
       } catch (error) {
         console.error('Auth check error:', error)
         setIsLoggedIn(false)
-        setIsAdmin(false)
         setUserName('')
       }
     }
@@ -62,7 +58,6 @@ export default function Navbar () {
       }
 
       setIsLoggedIn(false)
-      setIsAdmin(false)
       setUserName('')
       setIsMobileMenuOpen(false)
 
@@ -80,7 +75,10 @@ export default function Navbar () {
         <div className='flex justify-between h-16'>
           <div className='flex'>
             <div className='flex-shrink-0 flex items-center'>
-              <Link href='/' className='text-xl font-bold text-gray-800'>
+              <Link
+                href='/'
+                className='text-xl font-bold text-gray-800 cursor-pointer'
+              >
                 Elegant Hotel
               </Link>
             </div>
@@ -89,7 +87,7 @@ export default function Navbar () {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium cursor-pointer ${
                     pathname === item.href
                       ? 'border-blue-500 text-gray-900'
                       : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
@@ -107,22 +105,33 @@ export default function Navbar () {
                 <span className='text-sm font-medium text-gray-700'>
                   {userName}
                 </span>
-                {isAdmin && (
-                  <Link href='/admin'>
-                    <Button variant='outline'>Admin Panel</Button>
-                  </Link>
-                )}
-                <Button onClick={handleLogout} variant='outline'>
+                <Link href='/admin'>
+                  <Button variant='outline' className='cursor-pointer'>
+                    Admin Panel
+                  </Button>
+                </Link>
+                <Button
+                  onClick={handleLogout}
+                  variant='outline'
+                  className='cursor-pointer'
+                >
                   Logout
                 </Button>
               </div>
             ) : (
               <div className='flex items-center space-x-4'>
                 <Link href='/auth/login'>
-                  <Button variant='outline'>Login</Button>
+                  <Button variant='outline' className='cursor-pointer'>
+                    Login
+                  </Button>
                 </Link>
                 <Link href='/auth/register'>
-                  <Button>Sign Up</Button>
+                  <Button className='cursor-pointer'>Sign Up</Button>
+                </Link>
+                <Link href='/admin'>
+                  <Button variant='outline' className='cursor-pointer'>
+                    Admin Panel
+                  </Button>
                 </Link>
               </div>
             )}
@@ -131,7 +140,7 @@ export default function Navbar () {
           <div className='-mr-2 flex items-center sm:hidden'>
             <button
               type='button'
-              className='inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500'
+              className='inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 cursor-pointer'
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               <span className='sr-only'>Open main menu</span>
@@ -153,7 +162,7 @@ export default function Navbar () {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+                className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium cursor-pointer ${
                   pathname === item.href
                     ? 'bg-blue-50 border-blue-500 text-blue-700'
                     : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
@@ -170,21 +179,19 @@ export default function Navbar () {
                 <div className='px-4 py-2 text-base font-medium text-gray-700'>
                   {userName}
                 </div>
-                {isAdmin && (
-                  <Link
-                    href='/admin'
-                    className='block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100'
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Admin Panel
-                  </Link>
-                )}
+                <Link
+                  href='/admin'
+                  className='block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 cursor-pointer'
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Admin Panel
+                </Link>
                 <button
                   onClick={() => {
                     handleLogout()
                     setIsMobileMenuOpen(false)
                   }}
-                  className='block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+                  className='block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 cursor-pointer'
                 >
                   Logout
                 </button>
@@ -193,17 +200,24 @@ export default function Navbar () {
               <div className='space-y-1'>
                 <Link
                   href='/auth/login'
-                  className='block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+                  className='block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 cursor-pointer'
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Login
                 </Link>
                 <Link
                   href='/auth/register'
-                  className='block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+                  className='block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 cursor-pointer'
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Sign Up
+                </Link>
+                <Link
+                  href='/admin'
+                  className='block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 cursor-pointer'
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Admin Panel
                 </Link>
               </div>
             )}

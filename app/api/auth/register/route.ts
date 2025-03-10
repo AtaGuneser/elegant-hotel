@@ -26,7 +26,7 @@ export async function POST (request: Request) {
     if (existingUser) {
       console.log('User already exists:', existingUser.email)
       return NextResponse.json(
-        { error: 'Bu email adresi zaten kayıtlı' },
+        { error: 'This email is already registered' },
         { status: 400 }
       )
     }
@@ -63,7 +63,7 @@ export async function POST (request: Request) {
     }
     return NextResponse.json(
       {
-        error: 'Kayıt işlemi başarısız oldu',
+        error: 'Registration failed',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }

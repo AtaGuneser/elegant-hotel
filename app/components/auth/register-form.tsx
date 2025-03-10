@@ -1,125 +1,105 @@
 'use client'
 
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { Button } from '../ui/button'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from '../ui/form'
-import { Input } from '../ui/input'
-import { registerSchema } from '@/app/lib/validations/auth'
-import { useAuthStore } from '@/app/store/auth'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-
-type RegisterFormValues = z.infer<typeof registerSchema>
+import { toast } from 'react-hot-toast'
+import { Button } from '@/app/components/ui/button'
+import { Input } from '@/app/components/ui/input'
 
 export function RegisterForm () {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const { setUser, setToken } = useAuthStore()
 
-  const form = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      password: '',
-      confirmPassword: ''
-    }
-  })
-
-  async function onSubmit (data: RegisterFormValues) {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     setIsLoading(true)
+
     try {
-      // TODO: Implement actual registration API call
       const response = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, email, password })
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error('Registration failed')
+        throw new Error(data.error || 'Registration failed')
       }
 
-      const result = await response.json()
-      setUser(result.user)
-      setToken(result.token)
-      router.push('/dashboard')
+      toast.success('Registration successful')
+      router.push('/auth/login')
     } catch (error) {
       console.error('Registration error:', error)
-      // TODO: Show error message to user
+      toast.error(
+        error instanceof Error ? error.message : 'Registration failed'
+      )
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
-        <FormField
-          control={form.control}
-          name='name'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>İsim</FormLabel>
-              <FormControl>
-                <Input placeholder='John Doe' {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+    <form onSubmit={handleSubmit} className='space-y-4'>
+      <div>
+        <label
+          htmlFor='name'
+          className='block text-sm font-medium text-gray-700'
+        >
+          Name
+        </label>
+        <Input
+          id='name'
+          type='text'
+          required
+          value={name}
+          onChange={e => setName(e.target.value)}
+          className='mt-1 block w-full'
+          placeholder='Enter your name'
         />
-        <FormField
-          control={form.control}
-          name='email'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder='ornek@email.com' {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+      </div>
+      <div>
+        <label
+          htmlFor='email'
+          className='block text-sm font-medium text-gray-700'
+        >
+          Email
+        </label>
+        <Input
+          id='email'
+          type='email'
+          required
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          className='mt-1 block w-full'
+          placeholder='Enter your email'
         />
-        <FormField
-          control={form.control}
-          name='password'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Şifre</FormLabel>
-              <FormControl>
-                <Input type='password' placeholder='******' {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+      </div>
+      <div>
+        <label
+          htmlFor='password'
+          className='block text-sm font-medium text-gray-700'
+        >
+          Password
+        </label>
+        <Input
+          id='password'
+          type='password'
+          required
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          className='mt-1 block w-full'
+          placeholder='Enter your password'
         />
-        <FormField
-          control={form.control}
-          name='confirmPassword'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Şifre Tekrar</FormLabel>
-              <FormControl>
-                <Input type='password' placeholder='******' {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type='submit' className='w-full' disabled={isLoading}>
-          {isLoading ? 'Kayıt olunuyor...' : 'Kayıt Ol'}
-        </Button>
-      </form>
-    </Form>
+      </div>
+      <Button type='submit' className='w-full' disabled={isLoading}>
+        {isLoading ? 'Creating account...' : 'Create account'}
+      </Button>
+    </form>
   )
 }

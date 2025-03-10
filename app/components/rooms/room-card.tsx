@@ -26,14 +26,14 @@ export function RoomCard ({ room }: RoomCardProps) {
       <CardContent className='p-4'>
         <div className='flex justify-between items-start mb-2'>
           <div>
-            <h3 className='text-lg font-semibold'>{room.category} Oda</h3>
+            <h3 className='text-lg font-semibold'>{room.category} Room</h3>
             <p className='text-sm text-muted-foreground'>
-              Oda No: {room.number}
+              Room No: {room.number}
             </p>
           </div>
           <div className='text-right'>
             <p className='text-lg font-bold'>₺{room.price}</p>
-            <p className='text-sm text-muted-foreground'>gecelik</p>
+            <p className='text-sm text-muted-foreground'>per night</p>
           </div>
         </div>
         <p className='text-sm text-muted-foreground mb-4'>{room.description}</p>
@@ -48,12 +48,12 @@ export function RoomCard ({ room }: RoomCardProps) {
           ))}
         </div>
         <p className='text-sm'>
-          <span className='font-medium'>Kapasite:</span> {room.capacity} kişi
+          <span className='font-medium'>Capacity:</span> {room.capacity} people
         </p>
       </CardContent>
       <CardFooter className='p-4 pt-0'>
         <Link href={`/rooms/${room.id}`} className='w-full'>
-          <Button className='w-full'>Rezervasyon Yap</Button>
+          <Button className='w-full'>Make Reservation</Button>
         </Link>
       </CardFooter>
     </Card>

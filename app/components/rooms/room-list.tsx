@@ -41,7 +41,7 @@ export function RoomList () {
   if (error) {
     return (
       <div className='text-center text-red-500'>
-        Odalar yüklenirken bir hata oluştu. Lütfen tekrar deneyin.
+        An error occurred while loading rooms. Please try again.
       </div>
     )
   }
@@ -49,7 +49,7 @@ export function RoomList () {
   if (!rooms?.length) {
     return (
       <div className='text-center text-gray-500'>
-        Seçtiğiniz kriterlere uygun oda bulunamadı.
+        No rooms found matching your criteria.
       </div>
     )
   }

@@ -1,21 +1,19 @@
 import { NextResponse } from 'next/server'
+import { compare } from 'bcryptjs'
 import { sign } from 'jsonwebtoken'
 import clientPromise from '@/app/lib/db'
-import { compare } from 'bcryptjs'
+import { loginSchema } from '@/app/lib/validations/auth'
 
 export async function POST (request: Request) {
   try {
     const body = await request.json()
-    const { email, password } = body
+    const validatedData = loginSchema.parse(body)
 
-    // Connect to MongoDB
     const client = await clientPromise
     const db = client.db('elegant-hotel')
     const users = db.collection('users')
 
-    // Find user
-    const user = await users.findOne({ email })
-
+    const user = await users.findOne({ email: validatedData.email })
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid credentials' },
@@ -23,8 +21,15 @@ export async function POST (request: Request) {
       )
     }
 
-    // Verify password
-    const isValidPassword = await compare(password, user.password)
+    // Check if user is active
+    if (user.isActive === false) {
+      return NextResponse.json(
+        { error: 'Your account has been deactivated' },
+        { status: 401 }
+      )
+    }
+
+    const isValidPassword = await compare(validatedData.password, user.password)
     if (!isValidPassword) {
       return NextResponse.json(
         { error: 'Invalid credentials' },
@@ -32,22 +37,30 @@ export async function POST (request: Request) {
       )
     }
 
-    // Create token
+    // Check if user has a valid role
+    if (!user.role || !['admin', 'customer'].includes(user.role)) {
+      return NextResponse.json({ error: 'Invalid user role' }, { status: 401 })
+    }
+
+    // Create token with user data
     const token = sign(
       {
         id: user._id.toString(),
         email: user.email,
-        role: user.role
+        role: user.role,
+        name: user.name
       },
       process.env.JWT_SECRET!,
-      { expiresIn: '24h' }
+      { expiresIn: '7d' }
     )
 
     // Set cookie with token
-    const response = NextResponse.json(
-      { message: 'Login successful' },
-      { status: 200 }
-    )
+    const response = NextResponse.json({
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      role: user.role
+    })
 
     // Clear any existing token first
     response.cookies.delete('token')
@@ -57,7 +70,8 @@ export async function POST (request: Request) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 // 24 hours
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 // 7 days
     })
 
     return response

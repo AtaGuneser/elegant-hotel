@@ -3,10 +3,10 @@ export default function Home () {
     <div className='flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] gap-8 text-center'>
       <div className='space-y-4'>
         <h1 className='text-4xl font-bold tracking-tight'>
-          Elegant Hotel&apos;e Hoşgeldiniz
+          Welcome to Elegant Hotel
         </h1>
         <p className='text-xl text-muted-foreground'>
-          Lüks ve konforun buluştuğu nokta
+          Where luxury meets comfort
         </p>
       </div>
 
@@ -19,13 +19,7 @@ export default function Home () {
           href='/rooms'
           className='rounded-full bg-primary text-primary-foreground px-6 py-3 hover:bg-primary/90 transition-colors'
         >
-          Odaları Görüntüle
-        </a>
-        <a
-          href='/contact'
-          className='rounded-full border border-input bg-background px-6 py-3 hover:bg-accent transition-colors'
-        >
-          İletişime Geç
+          View Rooms
         </a>
       </div>
     </div>

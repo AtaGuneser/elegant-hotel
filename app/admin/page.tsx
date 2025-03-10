@@ -30,37 +30,37 @@ async function fetchDashboardStats (): Promise<DashboardStats> {
 
 const stats = [
   {
-    name: 'Toplam Kullanıcı',
+    name: 'Total Users',
     value: 'totalUsers',
     icon: Users,
     color: 'bg-blue-500'
   },
   {
-    name: 'Toplam Oda',
+    name: 'Total Rooms',
     value: 'totalRooms',
     icon: Hotel,
     color: 'bg-green-500'
   },
   {
-    name: 'Toplam Rezervasyon',
+    name: 'Total Bookings',
     value: 'totalBookings',
     icon: Calendar,
     color: 'bg-purple-500'
   },
   {
-    name: 'Toplam Gelir',
+    name: 'Total Revenue',
     value: 'totalRevenue',
     icon: DollarSign,
     color: 'bg-yellow-500'
   },
   {
-    name: 'Ortalama Konaklama',
+    name: 'Average Stay Duration',
     value: 'averageStayDuration',
     icon: Clock,
     color: 'bg-red-500'
   },
   {
-    name: 'Doluluk Oranı',
+    name: 'Occupancy Rate',
     value: 'occupancyRate',
     icon: Percent,
     color: 'bg-indigo-500'
@@ -86,11 +86,9 @@ export default function AdminDashboard () {
       <div className='flex h-96 items-center justify-center'>
         <div className='text-center'>
           <h3 className='text-lg font-medium text-gray-900'>
-            Veriler yüklenirken bir hata oluştu
+            An error occurred while loading data
           </h3>
-          <p className='mt-2 text-sm text-gray-500'>
-            Lütfen daha sonra tekrar deneyin
-          </p>
+          <p className='mt-2 text-sm text-gray-500'>Please try again later</p>
         </div>
       </div>
     )
@@ -128,9 +126,7 @@ export default function AdminDashboard () {
 
       {/* Recent Bookings */}
       <div className='mt-8'>
-        <h2 className='text-lg font-medium text-gray-900'>
-          Son Rezervasyonlar
-        </h2>
+        <h2 className='text-lg font-medium text-gray-900'>Recent Bookings</h2>
         <div className='mt-4 overflow-hidden rounded-lg bg-white shadow'>
           <RecentBookings />
         </div>

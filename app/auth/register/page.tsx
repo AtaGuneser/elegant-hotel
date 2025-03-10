@@ -1,6 +1,13 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { RegisterForm } from '@/app/components/auth/register-form'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@/app/components/ui/card'
 
 export const metadata: Metadata = {
   title: 'Register - Elegant Hotel',
@@ -9,27 +16,27 @@ export const metadata: Metadata = {
 
 export default function RegisterPage () {
   return (
-    <div className='container flex h-screen w-screen flex-col items-center justify-center'>
-      <div className='mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]'>
-        <div className='flex flex-col space-y-2 text-center'>
-          <h1 className='text-2xl font-semibold tracking-tight'>
-            Hesap Oluştur
-          </h1>
-          <p className='text-sm text-muted-foreground'>
-            Bilgilerinizi girerek kayıt olun
-          </p>
-        </div>
-        <RegisterForm />
-        <p className='px-8 text-center text-sm text-muted-foreground'>
-          Zaten hesabınız var mı?{' '}
-          <Link
-            href='/auth/login'
-            className='underline underline-offset-4 hover:text-primary'
-          >
-            Giriş Yapın
-          </Link>
-        </p>
-      </div>
+    <div className='min-h-screen flex items-center justify-center  py-12 px-4 sm:px-6 lg:px-8'>
+      <Card className='w-full max-w-md'>
+        <CardHeader>
+          <CardTitle>Create an Account</CardTitle>
+          <CardDescription>
+            Enter your information to create your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RegisterForm />
+          <div className='mt-4 text-sm text-center'>
+            Already have an account?{' '}
+            <Link
+              href='/auth/login'
+              className='font-medium text-blue-600 hover:text-blue-500'
+            >
+              Sign in
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
