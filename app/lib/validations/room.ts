@@ -14,12 +14,12 @@ export const roomSchema = z.object({
 
 export const roomFilterSchema = z
   .object({
-    category: z.enum(['Basic', 'Premium', 'Suite'] as const).optional(),
+    category: z.enum(['Basic', 'Premium', 'Suite']).optional(),
     minPrice: z.number().min(0).optional(),
     maxPrice: z.number().min(0).optional(),
+    capacity: z.number().min(1).optional(),
     startDate: z.date().optional(),
-    endDate: z.date().optional(),
-    capacity: z.number().min(1).optional()
+    endDate: z.date().optional()
   })
   .refine(
     data => {
@@ -29,7 +29,7 @@ export const roomFilterSchema = z
       return true
     },
     {
-      message: 'Maksimum fiyat minimum fiyattan büyük olmalıdır',
+      message: 'Maximum price must be greater than minimum price',
       path: ['maxPrice']
     }
   )
@@ -41,7 +41,7 @@ export const roomFilterSchema = z
       return true
     },
     {
-      message: 'Bitiş tarihi başlangıç tarihinden sonra olmalıdır',
+      message: 'Check-out date must be after check-in date',
       path: ['endDate']
     }
   )

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import clientPromise from '@/app/lib/db'
 import { roomSchema } from '@/app/lib/validations/room'
 import { verify } from 'jsonwebtoken'
+import { ObjectId } from 'mongodb'
 
 interface JwtPayload {
   id: string
@@ -9,24 +10,90 @@ interface JwtPayload {
   role: string
 }
 
-export async function GET () {
+interface RoomFilter {
+  category?: string
+  price?: {
+    $gte?: number
+    $lte?: number
+  }
+  capacity?: {
+    $gte: number
+  }
+  _id?: {
+    $nin: ObjectId[]
+  }
+}
+
+export async function GET (request: Request) {
   try {
+    const { searchParams } = new URL(request.url)
+    const category = searchParams.get('category')
+    const minPrice = searchParams.get('minPrice')
+    const maxPrice = searchParams.get('maxPrice')
+    const capacity = searchParams.get('capacity')
+    const startDate = searchParams.get('startDate')
+    const endDate = searchParams.get('endDate')
+
+    // Connect to MongoDB
     const client = await clientPromise
     const db = client.db('elegant-hotel')
-    const rooms = db.collection('rooms')
 
-    const result = await rooms.find().toArray()
+    // Build filter query
+    const filter: RoomFilter = {}
 
-    return NextResponse.json(
-      result.map(room => ({
-        ...room,
-        _id: room._id.toString()
-      }))
-    )
+    if (category) {
+      filter.category = category
+    }
+
+    if (minPrice || maxPrice) {
+      filter.price = {}
+      if (minPrice) filter.price.$gte = parseInt(minPrice)
+      if (maxPrice) filter.price.$lte = parseInt(maxPrice)
+    }
+
+    if (capacity) {
+      filter.capacity = { $gte: parseInt(capacity) }
+    }
+
+    // Check room availability if dates are provided
+    if (startDate && endDate) {
+      const unavailableRoomIds = await db
+        .collection('bookings')
+        .find({
+          $or: [
+            {
+              checkIn: { $lte: new Date(endDate) },
+              checkOut: { $gte: new Date(startDate) }
+            }
+          ]
+        })
+        .project({ roomId: 1 })
+        .map(booking => new ObjectId(booking.roomId))
+        .toArray()
+
+      if (unavailableRoomIds.length > 0) {
+        filter._id = { $nin: unavailableRoomIds }
+      }
+    }
+
+    // Fetch filtered rooms
+    const rooms = await db
+      .collection('rooms')
+      .find(filter)
+      .sort({ price: 1 })
+      .toArray()
+
+    // Convert ObjectId to string
+    const formattedRooms = rooms.map(room => ({
+      ...room,
+      _id: room._id.toString()
+    }))
+
+    return NextResponse.json(formattedRooms)
   } catch (error) {
     console.error('Error fetching rooms:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to fetch rooms' },
       { status: 500 }
     )
   }

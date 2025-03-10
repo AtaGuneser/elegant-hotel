@@ -64,7 +64,11 @@ export function AdminLoginForm () {
           onChange={e => setFormData({ ...formData, password: e.target.value })}
         />
       </div>
-      <Button type='submit' className='w-full' disabled={isLoading}>
+      <Button
+        type='submit'
+        className='w-full cursor-pointer'
+        disabled={isLoading}
+      >
         {isLoading ? 'Logging in...' : 'Login'}
       </Button>
     </form>

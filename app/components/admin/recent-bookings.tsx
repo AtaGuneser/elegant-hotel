@@ -3,21 +3,36 @@
 import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { enUS } from 'date-fns/locale'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle
+} from '@/app/components/ui/card'
 
 interface RecentBooking {
-  id: string
-  roomNumber: string
-  roomCategory: string
-  customerName: string
-  customerEmail: string
+  _id: string
   checkIn: string
   checkOut: string
-  status: string
+  guests: number
   totalPrice: number
+  status: string
+  room: {
+    _id: string
+    number: string
+    category: string
+  }
+  user: {
+    name: string
+    email: string
+  }
+  createdAt: string
 }
 
 async function fetchRecentBookings (): Promise<RecentBooking[]> {
-  const response = await fetch('/api/admin/recent-bookings')
+  const response = await fetch('/api/admin/recent-bookings', {
+    credentials: 'include'
+  })
   if (!response.ok) {
     throw new Error('Failed to fetch recent bookings')
   }
@@ -64,80 +79,45 @@ export function RecentBookings () {
   }
 
   return (
-    <div className='overflow-hidden'>
-      <table className='min-w-full divide-y divide-gray-200'>
-        <thead className='bg-gray-50'>
-          <tr>
-            <th
-              scope='col'
-              className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'
+    <div className='grid gap-4 md:grid-cols-3'>
+      {data.map(booking => (
+        <Card key={booking._id}>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm font-medium'>
+              Room {booking.room.number}
+            </CardTitle>
+            <span
+              className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                statusColors[booking.status as keyof typeof statusColors]
+              }`}
             >
-              Room
-            </th>
-            <th
-              scope='col'
-              className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'
-            >
-              Customer
-            </th>
-            <th
-              scope='col'
-              className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'
-            >
-              Date
-            </th>
-            <th
-              scope='col'
-              className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'
-            >
-              Status
-            </th>
-          </tr>
-        </thead>
-        <tbody className='divide-y divide-gray-200 bg-white'>
-          {data.map(booking => (
-            <tr key={booking.id}>
-              <td className='whitespace-nowrap px-6 py-4'>
-                <div className='text-sm font-medium text-gray-900'>
-                  {booking.roomNumber}
-                </div>
-                <div className='text-sm text-gray-500'>
-                  {booking.roomCategory}
-                </div>
-              </td>
-              <td className='whitespace-nowrap px-6 py-4'>
-                <div className='text-sm font-medium text-gray-900'>
-                  {booking.customerName}
-                </div>
-                <div className='text-sm text-gray-500'>
-                  {booking.customerEmail}
-                </div>
-              </td>
-              <td className='whitespace-nowrap px-6 py-4'>
-                <div className='text-sm text-gray-900'>
-                  {format(new Date(booking.checkIn), 'd MMM yyyy', {
-                    locale: enUS
-                  })}
-                </div>
-                <div className='text-sm text-gray-500'>
-                  {format(new Date(booking.checkOut), 'd MMM yyyy', {
-                    locale: enUS
-                  })}
-                </div>
-              </td>
-              <td className='whitespace-nowrap px-6 py-4'>
-                <span
-                  className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                    statusColors[booking.status as keyof typeof statusColors]
-                  }`}
-                >
-                  {booking.status}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              {booking.status}
+            </span>
+          </CardHeader>
+          <CardContent>
+            <div className='text-sm'>
+              <div className='font-medium'>{booking.user.name}</div>
+              <div className='text-muted-foreground'>{booking.user.email}</div>
+            </div>
+            <div className='mt-2 space-y-1 text-sm text-muted-foreground'>
+              <div>
+                Check In:{' '}
+                {format(new Date(booking.checkIn), 'PPP', { locale: enUS })}
+              </div>
+              <div>
+                Check Out:{' '}
+                {format(new Date(booking.checkOut), 'PPP', { locale: enUS })}
+              </div>
+              <div>Guests: {booking.guests}</div>
+              <div>Total: ${booking.totalPrice.toLocaleString()}</div>
+              <div className='text-xs'>
+                Booked on:{' '}
+                {format(new Date(booking.createdAt), 'PPP', { locale: enUS })}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   )
 }

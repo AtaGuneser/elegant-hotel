@@ -3,14 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/app/lib/utils'
-import {
-  LayoutDashboard,
-  Users,
-  Hotel,
-  Calendar,
-  Settings,
-  LogOut
-} from 'lucide-react'
+import { LayoutDashboard, Users, Hotel, Calendar, LogOut } from 'lucide-react'
 import { Button } from '@/app/components/ui/button'
 import {
   Sheet,
@@ -41,11 +34,6 @@ const menuItems = [
     title: 'Bookings',
     href: '/admin/bookings',
     icon: Calendar
-  },
-  {
-    title: 'Settings',
-    href: '/admin/settings',
-    icon: Settings
   }
 ]
 

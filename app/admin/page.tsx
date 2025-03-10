@@ -1,14 +1,9 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import {
-  Users,
-  Hotel,
-  Calendar,
-  DollarSign,
-  Clock,
-  Percent
-} from 'lucide-react'
+import { Users, Hotel, Calendar } from 'lucide-react'
 import { RecentBookings } from '@/app/components/admin/recent-bookings'
 
 interface DashboardStats {
@@ -21,7 +16,9 @@ interface DashboardStats {
 }
 
 async function fetchDashboardStats (): Promise<DashboardStats> {
-  const response = await fetch('/api/admin/stats')
+  const response = await fetch('/api/admin/stats', {
+    credentials: 'include'
+  })
   if (!response.ok) {
     throw new Error('Failed to fetch dashboard stats')
   }
@@ -46,50 +43,44 @@ const stats = [
     value: 'totalBookings',
     icon: Calendar,
     color: 'bg-purple-500'
-  },
-  {
-    name: 'Total Revenue',
-    value: 'totalRevenue',
-    icon: DollarSign,
-    color: 'bg-yellow-500'
-  },
-  {
-    name: 'Average Stay Duration',
-    value: 'averageStayDuration',
-    icon: Clock,
-    color: 'bg-red-500'
-  },
-  {
-    name: 'Occupancy Rate',
-    value: 'occupancyRate',
-    icon: Percent,
-    color: 'bg-indigo-500'
   }
 ]
 
 export default function AdminDashboard () {
-  const { data, isLoading, error } = useQuery({
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/check', {
+          credentials: 'include'
+        })
+        const data = await response.json()
+        if (!response.ok || data.role !== 'admin') {
+          router.push('/admin/login')
+        } else {
+          setIsLoading(false)
+        }
+      } catch (error) {
+        console.error('Auth check error:', error)
+        router.push('/admin/login')
+      }
+    }
+
+    checkAuth()
+  }, [router])
+
+  const { data } = useQuery({
     queryKey: ['dashboardStats'],
-    queryFn: fetchDashboardStats
+    queryFn: fetchDashboardStats,
+    enabled: !isLoading
   })
 
   if (isLoading) {
     return (
       <div className='flex h-96 items-center justify-center'>
         <div className='h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent' />
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className='flex h-96 items-center justify-center'>
-        <div className='text-center'>
-          <h3 className='text-lg font-medium text-gray-900'>
-            An error occurred while loading data
-          </h3>
-          <p className='mt-2 text-sm text-gray-500'>Please try again later</p>
-        </div>
       </div>
     )
   }
@@ -101,6 +92,9 @@ export default function AdminDashboard () {
       <div className='mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3'>
         {stats.map(stat => {
           const Icon = stat.icon
+          const value = data?.[stat.value as keyof DashboardStats]
+          const displayValue = value ?? 0
+
           return (
             <div
               key={stat.name}
@@ -116,7 +110,7 @@ export default function AdminDashboard () {
               </dt>
               <dd className='ml-16 flex items-baseline pb-6 sm:pb-7'>
                 <p className='text-2xl font-semibold text-gray-900'>
-                  {data?.[stat.value as keyof DashboardStats]}
+                  {displayValue}
                 </p>
               </dd>
             </div>

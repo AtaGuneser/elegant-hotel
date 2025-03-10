@@ -28,7 +28,7 @@ export default function AdminLoginPage () {
         </CardContent>
         <CardFooter>
           <Link href='/' className='w-full'>
-            <Button variant='outline' className='w-full'>
+            <Button variant='outline' className='w-full cursor-pointer'>
               <ArrowLeft className='mr-2 h-4 w-4' />
               Back to Home
             </Button>
