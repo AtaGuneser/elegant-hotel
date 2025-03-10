@@ -1,15 +1,15 @@
 export type RoomCategory = 'Basic' | 'Premium' | 'Suite'
 
 export interface Room {
-  id: string
+  _id: string
   number: string
-  category: RoomCategory
+  type: string
   price: number
   description: string
   amenities: string[]
   images: string[]
   capacity: number
-  isAvailable: boolean
+  status: 'available' | 'occupied' | 'maintenance'
   createdAt: Date
   updatedAt: Date
 }
