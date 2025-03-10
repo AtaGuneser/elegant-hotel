@@ -4,6 +4,8 @@ import './globals.css'
 import { cn } from '@/lib/utils'
 import { Providers } from './components/providers'
 import ClientLayout from './components/layout/client-layout'
+import { Toaster } from 'react-hot-toast'
+import { AuthProvider } from './components/providers/auth-provider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -25,9 +27,12 @@ export default function RootLayout ({
           inter.className
         )}
       >
-        <Providers>
-          <ClientLayout>{children}</ClientLayout>
-        </Providers>
+        <AuthProvider>
+          <Providers>
+            <ClientLayout>{children}</ClientLayout>
+          </Providers>
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   )

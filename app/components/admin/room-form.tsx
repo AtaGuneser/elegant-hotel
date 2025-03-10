@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { toast } from 'react-hot-toast'
 import { useDropzone } from 'react-dropzone'
 import { Button } from '@/app/components/ui/button'
@@ -341,16 +342,17 @@ export function RoomForm ({ initialData, onSuccess }: RoomFormProps) {
               {images.length > 0 && (
                 <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
                   {images.map((image, index) => (
-                    <div key={index} className='relative group'>
-                      <img
+                    <div key={index} className='relative group aspect-video'>
+                      <Image
                         src={image}
                         alt={`Room image ${index + 1}`}
-                        className='w-full h-32 object-cover rounded-lg'
+                        fill
+                        className='object-cover rounded-lg'
                       />
                       <button
                         type='button'
                         onClick={() => handleRemoveImage(index)}
-                        className='absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity'
+                        className='absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10'
                       >
                         <X className='h-4 w-4' />
                       </button>

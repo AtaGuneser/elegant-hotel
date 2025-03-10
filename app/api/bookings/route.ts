@@ -1,18 +1,13 @@
 import { NextResponse } from 'next/server'
 import { ObjectId } from 'mongodb'
 import clientPromise from '@/app/lib/db'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/app/lib/auth'
 import {
   bookingSchema,
   bookingFilterSchema
 } from '@/app/lib/validations/booking'
-import { verify } from 'jsonwebtoken'
 import { BookingStatus } from '@/app/types/booking'
-
-interface JwtPayload {
-  id: string
-  email: string
-  role: string
-}
 
 interface BookingQuery {
   status?: BookingStatus
@@ -82,83 +77,67 @@ export async function GET (request: Request) {
   }
 }
 
-export async function POST (request: Request) {
+export async function POST (req: Request) {
   try {
-    const body = await request.json()
-    const validatedData = bookingSchema.parse(body)
-
-    // Get user from token
-    const token = request.headers.get('authorization')?.split(' ')[1]
-    if (!token) {
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const decoded = verify(token, process.env.JWT_SECRET!) as JwtPayload
-    const userId = decoded.id
+    const json = await req.json()
+    const body = bookingSchema.parse(json)
 
-    // Connect to MongoDB
     const client = await clientPromise
-    const db = client.db('elegant-hotel')
-    const bookings = db.collection('bookings')
-    const rooms = db.collection('rooms')
+    const db = client.db()
 
-    // Get room details
-    const room = await rooms.findOne({
-      _id: new ObjectId(validatedData.roomId)
+    // Check if room exists and is available
+    const room = await db.collection('rooms').findOne({
+      _id: new ObjectId(body.roomId),
+      status: 'available'
     })
+
     if (!room) {
-      return NextResponse.json({ error: 'Room not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Room not found or not available' },
+        { status: 404 }
+      )
     }
 
-    // Check room availability
-    const existingBooking = await bookings.findOne({
-      roomId: validatedData.roomId,
+    // Check if room is already booked for the selected dates
+    const existingBooking = await db.collection('bookings').findOne({
+      roomId: new ObjectId(body.roomId),
       status: { $in: ['pending', 'confirmed'] },
       $or: [
         {
-          checkIn: { $lte: validatedData.checkOut },
-          checkOut: { $gte: validatedData.checkIn }
+          checkIn: { $lte: new Date(body.checkOut) },
+          checkOut: { $gte: new Date(body.checkIn) }
         }
       ]
     })
 
     if (existingBooking) {
       return NextResponse.json(
-        { error: 'Room is not available for these dates' },
+        { error: 'Room is not available for selected dates' },
         { status: 400 }
       )
     }
 
-    // Calculate total price
-    const nights = Math.ceil(
-      (validatedData.checkOut.getTime() - validatedData.checkIn.getTime()) /
-        (1000 * 60 * 60 * 24)
-    )
-    const totalPrice = room.price * nights
-
     // Create booking
-    const result = await bookings.insertOne({
-      ...validatedData,
-      userId,
+    const booking = await db.collection('bookings').insertOne({
+      userId: session.user.id,
+      roomId: new ObjectId(body.roomId),
+      checkIn: new Date(body.checkIn),
+      checkOut: new Date(body.checkOut),
+      totalPrice: body.totalPrice,
       status: 'pending',
-      totalPrice,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: new Date()
     })
 
-    return NextResponse.json({
-      id: result.insertedId.toString(),
-      ...validatedData,
-      userId,
-      status: 'pending',
-      totalPrice,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    })
+    return NextResponse.json({ bookingId: booking.insertedId }, { status: 201 })
   } catch (error) {
     console.error('Error creating booking:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to create booking' },
       { status: 500 }
     )
   }
