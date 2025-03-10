@@ -13,7 +13,13 @@ import {
   TableRow
 } from '@/app/components/ui/table'
 import { Button } from '@/app/components/ui/button'
-import { Trash2 } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/app/components/ui/dropdown-menu'
+import { Trash2, MoreVertical, Check, X, Clock } from 'lucide-react'
 
 interface Booking {
   _id: string
@@ -47,7 +53,7 @@ async function fetchBookings (): Promise<Booking[]> {
 }
 
 async function deleteBooking (id: string) {
-  const response = await fetch(`/api/admin/bookings?id=${id}`, {
+  const response = await fetch(`/api/admin/bookings/${id}`, {
     method: 'DELETE',
     credentials: 'include'
   })
@@ -57,11 +63,39 @@ async function deleteBooking (id: string) {
   return response.json()
 }
 
+async function updateBookingStatus (id: string, status: string) {
+  const response = await fetch(`/api/admin/bookings/${id}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ status })
+  })
+  if (!response.ok) {
+    throw new Error('Failed to update booking status')
+  }
+  return response.json()
+}
+
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
   confirmed: 'bg-green-100 text-green-800',
   cancelled: 'bg-red-100 text-red-800',
   completed: 'bg-blue-100 text-blue-800'
+}
+
+const statusActions = {
+  pending: [
+    { label: 'Confirm', value: 'confirmed', icon: Check },
+    { label: 'Cancel', value: 'cancelled', icon: X }
+  ],
+  confirmed: [
+    { label: 'Complete', value: 'completed', icon: Clock },
+    { label: 'Cancel', value: 'cancelled', icon: X }
+  ],
+  cancelled: [{ label: 'Reopen', value: 'pending', icon: Clock }],
+  completed: [{ label: 'Reopen', value: 'pending', icon: Clock }]
 }
 
 export default function BookingsPage () {
@@ -83,6 +117,17 @@ export default function BookingsPage () {
     } catch (error) {
       console.error('Error deleting booking:', error)
       toast.error('Failed to delete booking')
+    }
+  }
+
+  const handleStatusUpdate = async (id: string, newStatus: string) => {
+    try {
+      await updateBookingStatus(id, newStatus)
+      toast.success('Booking status updated successfully')
+      refetch()
+    } catch (error) {
+      console.error('Error updating booking status:', error)
+      toast.error('Failed to update booking status')
     }
   }
 
@@ -162,14 +207,38 @@ export default function BookingsPage () {
                   {format(new Date(booking.createdAt), 'PPP', { locale: enUS })}
                 </TableCell>
                 <TableCell>
-                  <Button
-                    variant='destructive'
-                    className='hover:bg-red-700 cursor-pointer transition-colors duration-300'
-                    size='icon'
-                    onClick={() => handleDelete(booking._id)}
-                  >
-                    <Trash2 className='h-4 w-4' />
-                  </Button>
+                  <div className='flex items-center gap-2'>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant='ghost' className='h-8 w-8 p-0'>
+                          <span className='sr-only'>Open menu</span>
+                          <MoreVertical className='h-4 w-4' />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align='end'>
+                        {statusActions[
+                          booking.status as keyof typeof statusActions
+                        ].map(action => (
+                          <DropdownMenuItem
+                            key={action.value}
+                            onClick={() =>
+                              handleStatusUpdate(booking._id, action.value)
+                            }
+                          >
+                            <action.icon className='mr-2 h-4 w-4' />
+                            {action.label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button
+                      variant='destructive'
+                      size='icon'
+                      onClick={() => handleDelete(booking._id)}
+                    >
+                      <Trash2 className='h-4 w-4' />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

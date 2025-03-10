@@ -10,6 +10,7 @@ export function RegisterForm () {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
@@ -23,7 +24,7 @@ export function RegisterForm () {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ name, email, password })
+        body: JSON.stringify({ name, email, password, confirmPassword })
       })
 
       const data = await response.json()
@@ -95,6 +96,23 @@ export function RegisterForm () {
           onChange={e => setPassword(e.target.value)}
           className='mt-1 block w-full'
           placeholder='Enter your password'
+        />
+      </div>
+      <div>
+        <label
+          htmlFor='confirmPassword'
+          className='block text-sm font-medium text-gray-700'
+        >
+          Confirm Password
+        </label>
+        <Input
+          id='confirmPassword'
+          type='password'
+          required
+          value={confirmPassword}
+          onChange={e => setConfirmPassword(e.target.value)}
+          className='mt-1 block w-full'
+          placeholder='Confirm your password'
         />
       </div>
       <Button type='submit' className='w-full' disabled={isLoading}>

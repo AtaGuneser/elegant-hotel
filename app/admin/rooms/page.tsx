@@ -101,7 +101,7 @@ export default function RoomsPage () {
         <h1 className='text-2xl font-bold'>Rooms Management</h1>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className='cursor-pointer'>
               <Plus className='mr-2 h-4 w-4' />
               Add New Room
             </Button>

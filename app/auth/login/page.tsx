@@ -96,13 +96,17 @@ export default function LoginPage () {
                 placeholder='Enter your password'
               />
             </div>
-            <Button type='submit' className='w-full' disabled={isLoading}>
+            <Button
+              type='submit'
+              className='w-full cursor-pointer'
+              disabled={isLoading}
+            >
               {isLoading ? 'Signing in...' : 'Sign in'}
             </Button>
             <div className='text-sm text-center'>
               <Link
                 href='/auth/register'
-                className='font-medium text-blue-600 hover:text-blue-500'
+                className='font-medium cursor-pointer text-blue-600 hover:text-blue-500'
               >
                 Don&apos;t have an account? Sign up
               </Link>
