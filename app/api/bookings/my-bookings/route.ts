@@ -1,25 +1,44 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/lib/auth'
 import clientPromise from '@/app/lib/db'
+import { verify } from 'jsonwebtoken'
 
-export async function GET () {
+interface JwtPayload {
+  id: string
+  email: string
+  role: string
+}
+
+export async function GET (request: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) {
+    // Get token from cookie
+    const token = request.headers
+      .get('cookie')
+      ?.split('token=')[1]
+      ?.split(';')[0]
+    if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const client = await clientPromise
-    const db = client.db()
+    // Verify token
+    const decoded = verify(token, process.env.JWT_SECRET!) as JwtPayload
+    const userId = decoded.id
 
-    // Get user's bookings with room details
+    // Connect to MongoDB
+    const client = await clientPromise
+    const db = client.db('elegant-hotel')
+
+    // Fetch user's bookings with room details
     const bookings = await db
       .collection('bookings')
       .aggregate([
         {
           $match: {
-            userId: session.user.id
+            userId: userId
+          }
+        },
+        {
+          $addFields: {
+            roomId: { $toObjectId: '$roomId' }
           }
         },
         {
@@ -34,8 +53,17 @@ export async function GET () {
           $unwind: '$room'
         },
         {
-          $sort: {
-            createdAt: -1
+          $project: {
+            _id: { $toString: '$_id' },
+            roomId: { $toString: '$roomId' },
+            checkIn: 1,
+            checkOut: 1,
+            guests: 1,
+            totalPrice: 1,
+            status: 1,
+            'room.number': 1,
+            'room.category': 1,
+            'room.price': 1
           }
         }
       ])
@@ -43,9 +71,12 @@ export async function GET () {
 
     return NextResponse.json(bookings)
   } catch (error) {
-    console.error('Error fetching bookings:', error)
+    console.error('Error fetching user bookings:', error)
+    if (error instanceof Error && error.name === 'JsonWebTokenError') {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+    }
     return NextResponse.json(
-      { error: 'Failed to fetch bookings' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

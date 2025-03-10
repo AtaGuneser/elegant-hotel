@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
 import { Button } from '@/app/components/ui/button'
 import { Input } from '@/app/components/ui/input'
 import { Label } from '@/app/components/ui/label'
@@ -15,13 +14,33 @@ interface BookingFormProps {
 
 export function BookingForm ({ room }: BookingFormProps) {
   const router = useRouter()
-  const { data: session, status } = useSession()
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [formData, setFormData] = useState({
     checkIn: '',
     checkOut: '',
     guests: 1
   })
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/check', {
+          credentials: 'include'
+        })
+        if (response.ok) {
+          setIsLoggedIn(true)
+        } else {
+          setIsLoggedIn(false)
+        }
+      } catch (error) {
+        console.error('Auth check error:', error)
+        setIsLoggedIn(false)
+      }
+    }
+
+    checkAuth()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,17 +75,13 @@ export function BookingForm ({ room }: BookingFormProps) {
     }
   }
 
-  if (status === 'loading') {
-    return <div>Loading...</div>
-  }
-
-  if (!session) {
+  if (!isLoggedIn) {
     return (
       <div className='space-y-4'>
         <p className='text-sm text-muted-foreground'>
           Please log in to make a reservation
         </p>
-        <Button onClick={() => router.push('/login')} className='w-full'>
+        <Button onClick={() => router.push('/auth/login')} className='w-full'>
           Login to Book
         </Button>
       </div>

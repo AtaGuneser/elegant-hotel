@@ -1,13 +1,18 @@
 import { NextResponse } from 'next/server'
 import { ObjectId } from 'mongodb'
 import clientPromise from '@/app/lib/db'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/lib/auth'
+import { verify } from 'jsonwebtoken'
 import {
   bookingSchema,
   bookingFilterSchema
 } from '@/app/lib/validations/booking'
 import { BookingStatus } from '@/app/types/booking'
+
+interface JwtPayload {
+  id: string
+  email: string
+  role: string
+}
 
 interface BookingQuery {
   status?: BookingStatus
@@ -79,63 +84,91 @@ export async function GET (request: Request) {
 
 export async function POST (req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) {
+    // Get token from cookie
+    const token = req.headers.get('cookie')?.split('token=')[1]?.split(';')[0]
+    if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const json = await req.json()
-    const body = bookingSchema.parse(json)
+    try {
+      const decoded = verify(token, process.env.JWT_SECRET!) as JwtPayload
+      const userId = decoded.id
 
-    const client = await clientPromise
-    const db = client.db()
+      const json = await req.json()
+      console.log('Received booking data:', json)
 
-    // Check if room exists and is available
-    const room = await db.collection('rooms').findOne({
-      _id: new ObjectId(body.roomId),
-      status: 'available'
-    })
+      const body = bookingSchema.parse(json)
+      console.log('Parsed booking data:', body)
 
-    if (!room) {
-      return NextResponse.json(
-        { error: 'Room not found or not available' },
-        { status: 404 }
+      const client = await clientPromise
+      const db = client.db()
+
+      // Check if room exists and is available
+      const room = await db.collection('rooms').findOne({
+        _id: new ObjectId(body.roomId),
+        status: 'available'
+      })
+      console.log('Found room:', room)
+
+      if (!room) {
+        return NextResponse.json(
+          { error: 'Room not found or not available' },
+          { status: 404 }
+        )
+      }
+
+      // Check if room is already booked for the selected dates
+      const existingBooking = await db.collection('bookings').findOne({
+        roomId: new ObjectId(body.roomId),
+        status: { $in: ['pending', 'confirmed'] },
+        $or: [
+          {
+            checkIn: { $lte: new Date(body.checkOut) },
+            checkOut: { $gte: new Date(body.checkIn) }
+          }
+        ]
+      })
+
+      if (existingBooking) {
+        return NextResponse.json(
+          { error: 'Room is not available for selected dates' },
+          { status: 400 }
+        )
+      }
+
+      // Calculate total price
+      const checkIn = new Date(body.checkIn)
+      const checkOut = new Date(body.checkOut)
+      const nights = Math.ceil(
+        (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
       )
-    }
+      const totalPrice = room.price * nights
 
-    // Check if room is already booked for the selected dates
-    const existingBooking = await db.collection('bookings').findOne({
-      roomId: new ObjectId(body.roomId),
-      status: { $in: ['pending', 'confirmed'] },
-      $or: [
-        {
-          checkIn: { $lte: new Date(body.checkOut) },
-          checkOut: { $gte: new Date(body.checkIn) }
-        }
-      ]
-    })
+      // Create booking
+      const booking = await db.collection('bookings').insertOne({
+        userId,
+        roomId: new ObjectId(body.roomId),
+        checkIn: new Date(body.checkIn),
+        checkOut: new Date(body.checkOut),
+        guests: body.guests,
+        totalPrice,
+        status: 'pending',
+        createdAt: new Date()
+      })
 
-    if (existingBooking) {
       return NextResponse.json(
-        { error: 'Room is not available for selected dates' },
-        { status: 400 }
+        { bookingId: booking.insertedId },
+        { status: 201 }
       )
+    } catch (verifyError) {
+      console.error('Token verification error:', verifyError)
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
-
-    // Create booking
-    const booking = await db.collection('bookings').insertOne({
-      userId: session.user.id,
-      roomId: new ObjectId(body.roomId),
-      checkIn: new Date(body.checkIn),
-      checkOut: new Date(body.checkOut),
-      totalPrice: body.totalPrice,
-      status: 'pending',
-      createdAt: new Date()
-    })
-
-    return NextResponse.json({ bookingId: booking.insertedId }, { status: 201 })
   } catch (error) {
     console.error('Error creating booking:', error)
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
     return NextResponse.json(
       { error: 'Failed to create booking' },
       { status: 500 }

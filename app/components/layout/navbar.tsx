@@ -13,6 +13,11 @@ const navigation = [
   { name: 'Rooms', href: '/rooms' }
 ]
 
+const userNavigation = [
+  { name: 'My Bookings', href: '/my-bookings' },
+  { name: 'Admin Panel', href: '/admin' }
+]
+
 export default function Navbar () {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -105,11 +110,13 @@ export default function Navbar () {
                 <span className='text-sm font-medium text-gray-700'>
                   {userName}
                 </span>
-                <Link href='/admin'>
-                  <Button variant='outline' className='cursor-pointer'>
-                    Admin Panel
-                  </Button>
-                </Link>
+                {userNavigation.map(item => (
+                  <Link key={item.name} href={item.href}>
+                    <Button variant='outline' className='cursor-pointer'>
+                      {item.name}
+                    </Button>
+                  </Link>
+                ))}
                 <Button
                   onClick={handleLogout}
                   variant='outline'
@@ -179,13 +186,16 @@ export default function Navbar () {
                 <div className='px-4 py-2 text-base font-medium text-gray-700'>
                   {userName}
                 </div>
-                <Link
-                  href='/admin'
-                  className='block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 cursor-pointer'
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Admin Panel
-                </Link>
+                {userNavigation.map(item => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className='block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 cursor-pointer'
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
                 <button
                   onClick={() => {
                     handleLogout()

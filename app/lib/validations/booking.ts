@@ -1,11 +1,37 @@
 import { z } from 'zod'
 
-export const bookingSchema = z.object({
-  roomId: z.string(),
-  checkIn: z.string().datetime(),
-  checkOut: z.string().datetime(),
-  totalPrice: z.number()
-})
+export const bookingSchema = z
+  .object({
+    roomId: z.string(),
+    checkIn: z.string().refine(date => {
+      try {
+        new Date(date)
+        return true
+      } catch {
+        return false
+      }
+    }, 'Invalid date format'),
+    checkOut: z.string().refine(date => {
+      try {
+        new Date(date)
+        return true
+      } catch {
+        return false
+      }
+    }, 'Invalid date format'),
+    guests: z.number().min(1)
+  })
+  .refine(
+    data => {
+      const checkIn = new Date(data.checkIn)
+      const checkOut = new Date(data.checkOut)
+      return checkOut > checkIn
+    },
+    {
+      message: 'Check-out date must be after check-in date',
+      path: ['checkOut']
+    }
+  )
 
 export type BookingInput = z.infer<typeof bookingSchema>
 
