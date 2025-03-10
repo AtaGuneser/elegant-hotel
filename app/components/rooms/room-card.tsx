@@ -53,7 +53,7 @@ export function RoomCard ({ room }: RoomCardProps) {
       </CardContent>
       <CardFooter className='p-4 pt-0'>
         <Link href={`/rooms/${room.id}`} className='w-full'>
-          <Button className='w-full'>Make Reservation</Button>
+          <Button className='w-full cursor-pointer'>Make Reservation</Button>
         </Link>
       </CardFooter>
     </Card>

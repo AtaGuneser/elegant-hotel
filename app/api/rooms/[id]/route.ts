@@ -16,23 +16,22 @@ export async function GET (
 ) {
   try {
     const client = await clientPromise
-    const db = client.db('elegant-hotel')
+    const db = client.db()
     const rooms = db.collection('rooms')
 
-    const room = await rooms.findOne({ _id: new ObjectId(params.id) })
+    const room = await rooms.findOne({
+      _id: new ObjectId(params.id)
+    })
+
     if (!room) {
-      return NextResponse.json({ error: 'Oda bulunamadı' }, { status: 404 })
+      return NextResponse.json({ error: 'Room not found' }, { status: 404 })
     }
 
-    return NextResponse.json({
-      ...room,
-      id: room._id.toString(),
-      _id: undefined
-    })
+    return NextResponse.json(room)
   } catch (error) {
     console.error('Error fetching room:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to fetch room details' },
       { status: 500 }
     )
   }
