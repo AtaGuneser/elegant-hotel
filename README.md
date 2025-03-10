@@ -64,7 +64,7 @@ A modern, full-stack hotel room booking system built with Next.js, TypeScript, a
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/elegant-hotel.git
+   git clone https://github.com/AtaGuneser/elegant-hotel.git
    cd elegant-hotel
    ```
 
