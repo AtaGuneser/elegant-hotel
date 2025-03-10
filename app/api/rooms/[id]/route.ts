@@ -136,7 +136,7 @@ export async function DELETE (
     // Check if room exists
     const existingRoom = await rooms.findOne({ _id: new ObjectId(params.id) })
     if (!existingRoom) {
-      return NextResponse.json({ error: 'Oda bulunamadı' }, { status: 404 })
+      return NextResponse.json({ error: 'Room not found' }, { status: 404 })
     }
 
     // Check if room has any bookings
@@ -144,7 +144,7 @@ export async function DELETE (
     const hasBookings = await bookings.findOne({ roomId: params.id })
     if (hasBookings) {
       return NextResponse.json(
-        { error: 'Bu odaya ait rezervasyonlar olduğu için silinemez' },
+        { error: 'This room cannot be deleted because it has bookings' },
         { status: 400 }
       )
     }
@@ -152,10 +152,10 @@ export async function DELETE (
     const result = await rooms.deleteOne({ _id: new ObjectId(params.id) })
 
     if (result.deletedCount === 0) {
-      return NextResponse.json({ error: 'Oda bulunamadı' }, { status: 404 })
+      return NextResponse.json({ error: 'Room not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ message: 'Oda başarıyla silindi' })
+    return NextResponse.json({ message: 'Room deleted successfully' })
   } catch (error) {
     console.error('Error deleting room:', error)
     return NextResponse.json(

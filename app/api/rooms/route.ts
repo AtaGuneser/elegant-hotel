@@ -20,8 +20,7 @@ export async function GET () {
     return NextResponse.json(
       result.map(room => ({
         ...room,
-        id: room._id.toString(),
-        _id: undefined
+        _id: room._id.toString()
       }))
     )
   } catch (error) {

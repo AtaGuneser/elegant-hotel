@@ -23,11 +23,17 @@ import {
 import { ROOM_AMENITIES } from '@/app/lib/constants'
 import { Upload, X } from 'lucide-react'
 
+const ROOM_TYPES = [
+  { value: 'Basic', label: 'Basic Room' },
+  { value: 'Premium', label: 'Premium Room' },
+  { value: 'Suite', label: 'Suite Room' }
+]
+
 interface RoomFormProps {
   initialData?: {
     _id: string
     number: string
-    type: string
+    category: string
     price: number
     description: string
     amenities: string[]
@@ -35,13 +41,14 @@ interface RoomFormProps {
     capacity: number
     status: string
   }
+  onSuccess?: () => void
 }
 
-export function RoomForm ({ initialData }: RoomFormProps) {
+export function RoomForm ({ initialData, onSuccess }: RoomFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [number, setNumber] = useState(initialData?.number || '')
-  const [type, setType] = useState(initialData?.type || '')
+  const [category, setCategory] = useState(initialData?.category || '')
   const [price, setPrice] = useState(initialData?.price || '')
   const [description, setDescription] = useState(initialData?.description || '')
   const [capacity, setCapacity] = useState(initialData?.capacity || '')
@@ -85,23 +92,26 @@ export function RoomForm ({ initialData }: RoomFormProps) {
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/rooms', {
-        method: initialData ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ...(initialData && { _id: initialData._id }),
-          number,
-          type,
-          price: Number(price),
-          description,
-          capacity: Number(capacity),
-          status,
-          amenities,
-          images
-        })
-      })
+      const response = await fetch(
+        initialData ? `/api/rooms/${initialData._id}` : '/api/rooms',
+        {
+          method: initialData ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            number,
+            category,
+            price: Number(price),
+            description,
+            capacity: Number(capacity),
+            status,
+            amenities,
+            images
+          })
+        }
+      )
 
       if (!response.ok) {
         const data = await response.json()
@@ -111,6 +121,7 @@ export function RoomForm ({ initialData }: RoomFormProps) {
       toast.success(
         initialData ? 'Room updated successfully' : 'Room created successfully'
       )
+      onSuccess?.()
       router.push('/admin/rooms')
       router.refresh()
     } catch (error) {
@@ -124,7 +135,7 @@ export function RoomForm ({ initialData }: RoomFormProps) {
   }
 
   return (
-    <Card>
+    <Card className='max-h-[calc(100vh-200px)] overflow-y-auto'>
       <CardHeader>
         <CardTitle>{initialData ? 'Edit Room' : 'Create New Room'}</CardTitle>
         <CardDescription>
@@ -151,16 +162,24 @@ export function RoomForm ({ initialData }: RoomFormProps) {
             </div>
 
             <div>
-              <label htmlFor='type' className='block text-sm font-medium mb-1'>
+              <label
+                htmlFor='category'
+                className='block text-sm font-medium mb-1'
+              >
                 Room Type
               </label>
-              <Input
-                id='type'
-                value={type}
-                onChange={e => setType(e.target.value)}
-                required
-                placeholder='Enter room type'
-              />
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder='Select room type' />
+                </SelectTrigger>
+                <SelectContent>
+                  {ROOM_TYPES.map(roomType => (
+                    <SelectItem key={roomType.value} value={roomType.value}>
+                      {roomType.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
@@ -242,7 +261,7 @@ export function RoomForm ({ initialData }: RoomFormProps) {
                   ))}
                 </SelectContent>
               </Select>
-              <div className='mt-2 flex flex-wrap gap-2'>
+              <div className='mt-2 flex flex-wrap gap-2 max-h-[100px] overflow-y-auto'>
                 {amenities.map((amenity, index) => (
                   <div
                     key={index}
@@ -342,7 +361,7 @@ export function RoomForm ({ initialData }: RoomFormProps) {
             </div>
           </div>
 
-          <div className='flex justify-end gap-4'>
+          <div className='flex justify-end gap-4 sticky bottom-0 bg-background py-4 border-t'>
             <Button
               type='button'
               variant='outline'

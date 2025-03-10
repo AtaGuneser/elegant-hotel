@@ -9,9 +9,12 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle
 } from '@/app/components/ui/card'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 
 export default function AdminLoginPage () {
   const [email, setEmail] = useState('admin@admin.com')
@@ -104,6 +107,14 @@ export default function AdminLoginPage () {
             </Button>
           </form>
         </CardContent>
+        <CardFooter>
+          <Link href='/' className='w-full'>
+            <Button variant='outline' className='w-full cursor-pointer'>
+              <ArrowLeft className='mr-2 h-4 w-4' />
+              Back to Home
+            </Button>
+          </Link>
+        </CardFooter>
       </Card>
     </div>
   )

@@ -17,7 +17,7 @@ export function RoomCard ({ room }: RoomCardProps) {
         <div className='relative aspect-video'>
           <Image
             src={room.images[0]}
-            alt={`${room.type} Room ${room.number}`}
+            alt={`${room.category} Room ${room.number}`}
             fill
             className='object-cover'
           />
@@ -26,7 +26,7 @@ export function RoomCard ({ room }: RoomCardProps) {
       <CardContent className='p-4'>
         <div className='flex justify-between items-start mb-2'>
           <div>
-            <h3 className='text-lg font-semibold'>{room.type} Room</h3>
+            <h3 className='text-lg font-semibold'>{room.category} Room</h3>
             <p className='text-sm text-muted-foreground'>
               Room No: {room.number}
             </p>
