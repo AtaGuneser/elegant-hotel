@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function Home () {
   return (
     <div className='flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] gap-8 text-center'>
@@ -15,12 +17,12 @@ export default function Home () {
       </div>
 
       <div className='flex gap-4'>
-        <a
+        <Link
           href='/rooms'
           className='rounded-full bg-primary text-primary-foreground px-6 py-3 hover:bg-primary/90 transition-colors'
         >
           View Rooms
-        </a>
+        </Link>
       </div>
     </div>
   )
