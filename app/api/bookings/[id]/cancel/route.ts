@@ -1,14 +1,14 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { ObjectId } from 'mongodb'
 import clientPromise from '@/app/lib/db'
 import { verifyAuth } from '@/app/lib/auth'
 
 export async function PUT (
-  req: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const token = req.headers.get('Authorization')?.replace('Bearer ', '')
+    const token = request.headers.get('Authorization')?.replace('Bearer ', '')
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -23,7 +23,7 @@ export async function PUT (
 
     // Find booking and check if it belongs to the user
     const booking = await db.collection('bookings').findOne({
-      _id: new ObjectId(params.id),
+      _id: new ObjectId((await params).id),
       userId: payload.sub
     })
 
@@ -40,7 +40,7 @@ export async function PUT (
 
     // Update booking status
     await db.collection('bookings').updateOne(
-      { _id: new ObjectId(params.id) },
+      { _id: new ObjectId((await params).id) },
       {
         $set: {
           status: 'cancelled',

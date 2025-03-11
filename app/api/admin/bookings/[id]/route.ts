@@ -11,7 +11,7 @@ interface JwtPayload {
 
 export async function PATCH (
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get token from cookie
@@ -45,7 +45,7 @@ export async function PATCH (
     const result = await db
       .collection('bookings')
       .updateOne(
-        { _id: new ObjectId(context.params.id) },
+        { _id: new ObjectId((await params).id) },
         { $set: { status, updatedAt: new Date() } }
       )
 
@@ -68,7 +68,7 @@ export async function PATCH (
 
 export async function DELETE (
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get token from cookie
@@ -90,7 +90,7 @@ export async function DELETE (
     // Delete the booking
     const result = await db
       .collection('bookings')
-      .deleteOne({ _id: new ObjectId(context.params.id) })
+      .deleteOne({ _id: new ObjectId((await params).id) })
 
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })

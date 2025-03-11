@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import clientPromise from '@/app/lib/db'
 import { verify } from 'jsonwebtoken'
 import { ObjectId } from 'mongodb'
@@ -9,45 +9,62 @@ interface JwtPayload {
   role: string
 }
 
+export async function GET (
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const client = await clientPromise
+    const db = client.db()
+    const bookings = db.collection('bookings')
+
+    const booking = await bookings.findOne({
+      _id: new ObjectId((await params).id)
+    })
+
+    if (!booking) {
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+    }
+
+    return NextResponse.json(booking)
+  } catch (error) {
+    console.error('Error fetching booking:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch booking details' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function DELETE (
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get token from cookie
-    const token = request.headers
-      .get('cookie')
-      ?.split('token=')[1]
-      ?.split(';')[0]
+    const token = request.cookies.get('token')?.value
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Verify token
+    // Verify token and check if user is admin
     const decoded = verify(token, process.env.JWT_SECRET!) as JwtPayload
-    const userId = decoded.id
+    if (decoded.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
     // Connect to MongoDB
     const client = await clientPromise
-    const db = client.db('elegant-hotel')
+    const db = client.db()
 
-    // Find the booking
-    const booking = await db.collection('bookings').findOne({
-      _id: new ObjectId(params.id),
-      userId: userId
-    })
+    // Delete booking
+    const result = await db
+      .collection('bookings')
+      .deleteOne({ _id: new ObjectId((await params).id) })
 
-    if (!booking) {
-      return NextResponse.json(
-        { error: 'Booking not found or unauthorized' },
-        { status: 404 }
-      )
+    if (result.deletedCount === 0) {
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
     }
-
-    // Delete the booking
-    await db.collection('bookings').deleteOne({
-      _id: new ObjectId(params.id)
-    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

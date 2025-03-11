@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { Suspense } from 'react'
 import { RoomFilters } from '../components/rooms/room-filters'
 import { RoomList } from '../components/rooms/room-list'
 
@@ -9,16 +10,14 @@ export const metadata: Metadata = {
 
 export default function RoomsPage () {
   return (
-    <div className='container py-10'>
-      <h1 className='text-3xl font-bold mb-8'>Our Rooms</h1>
-      <div className='grid grid-cols-1 md:grid-cols-4 gap-6'>
-        <aside className='md:col-span-1'>
-          <RoomFilters />
-        </aside>
-        <main className='md:col-span-3'>
-          <RoomList />
-        </main>
-      </div>
+    <div className='container py-2'>
+      <h1 className='text-3xl font-bold mb-2'>Our Rooms</h1>
+      <Suspense fallback={<div>Loading filters...</div>}>
+        <RoomFilters />
+      </Suspense>
+      <Suspense fallback={<div>Loading rooms...</div>}>
+        <RoomList />
+      </Suspense>
     </div>
   )
 }
