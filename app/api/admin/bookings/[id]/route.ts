@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import clientPromise from '@/app/lib/db'
 import { verify } from 'jsonwebtoken'
 import { ObjectId } from 'mongodb'
@@ -10,15 +10,12 @@ interface JwtPayload {
 }
 
 export async function PATCH (
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: { params: { id: string } }
 ) {
   try {
     // Get token from cookie
-    const token = request.headers
-      .get('cookie')
-      ?.split('token=')[1]
-      ?.split(';')[0]
+    const token = request.cookies.get('token')?.value
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -48,7 +45,7 @@ export async function PATCH (
     const result = await db
       .collection('bookings')
       .updateOne(
-        { _id: new ObjectId(params.id) },
+        { _id: new ObjectId(context.params.id) },
         { $set: { status, updatedAt: new Date() } }
       )
 
@@ -70,15 +67,12 @@ export async function PATCH (
 }
 
 export async function DELETE (
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: { params: { id: string } }
 ) {
   try {
     // Get token from cookie
-    const token = request.headers
-      .get('cookie')
-      ?.split('token=')[1]
-      ?.split(';')[0]
+    const token = request.cookies.get('token')?.value
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -96,7 +90,7 @@ export async function DELETE (
     // Delete the booking
     const result = await db
       .collection('bookings')
-      .deleteOne({ _id: new ObjectId(params.id) })
+      .deleteOne({ _id: new ObjectId(context.params.id) })
 
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
