@@ -2,7 +2,7 @@
 
 ## 🌟 Live Demo
 
-Visit the live demo: [Elegant Hotel](https://elegant-hotel-atagunes.vercel.app)
+Visit the live demo: [Elegant Hotel](https://elegant-hotel-ataguneser.vercel.app)
 
 A modern, full-stack hotel room booking system built with Next.js, TypeScript, and MongoDB.
 
