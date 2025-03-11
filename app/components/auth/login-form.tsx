@@ -14,7 +14,7 @@ import {
 } from '../ui/form'
 import { Input } from '../ui/input'
 import { loginSchema } from '@/app/lib/validations/auth'
-import { useAuth } from '@/app/store/auth'
+import { useAuthStore } from '@/app/store/auth'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
@@ -24,7 +24,7 @@ type LoginFormValues = z.infer<typeof loginSchema>
 export function LoginForm () {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const { setUser, setToken } = useAuth()
+  const { setUser, setToken } = useAuthStore()
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
