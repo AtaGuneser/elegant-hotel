@@ -14,17 +14,17 @@ import {
 } from '../ui/form'
 import { Input } from '../ui/input'
 import { loginSchema } from '@/app/lib/validations/auth'
-import { useAuthStore } from '@/app/store/auth'
+import { useAuth } from '@/app/store/auth'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Cookies from 'js-cookie'
+import { toast } from 'react-hot-toast'
 
 type LoginFormValues = z.infer<typeof loginSchema>
 
 export function LoginForm () {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const { setUser, setToken } = useAuthStore()
+  const { setUser, setToken } = useAuth()
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -40,27 +40,29 @@ export function LoginForm () {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
+        credentials: 'include' // Important for cookies
       })
-
-      if (!response.ok) {
-        throw new Error('Login failed')
-      }
 
       const result = await response.json()
 
-      // Store token in cookie (7 days expiry)
-      Cookies.set('token', result.token, { expires: 7 })
+      if (!response.ok) {
+        throw new Error(result.error || 'Login failed')
+      }
 
       // Update auth store
       setUser(result.user)
       setToken(result.token)
 
-      // Redirect to dashboard
-      router.push('/dashboard')
+      // Show success message
+      toast.success('Login successful')
+
+      // Redirect to home page
+      router.push('/')
+      router.refresh()
     } catch (error) {
       console.error('Login error:', error)
-      // TODO: Show error message to user
+      toast.error(error instanceof Error ? error.message : 'Login failed')
     } finally {
       setIsLoading(false)
     }
@@ -76,7 +78,7 @@ export function LoginForm () {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder='ornek@email.com' {...field} />
+                <Input placeholder='example@email.com' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -87,7 +89,7 @@ export function LoginForm () {
           name='password'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Şifre</FormLabel>
+              <FormLabel>Password</FormLabel>
               <FormControl>
                 <Input type='password' placeholder='******' {...field} />
               </FormControl>
@@ -96,7 +98,7 @@ export function LoginForm () {
           )}
         />
         <Button type='submit' className='w-full' disabled={isLoading}>
-          {isLoading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
+          {isLoading ? 'Logging in...' : 'Login'}
         </Button>
       </form>
     </Form>
