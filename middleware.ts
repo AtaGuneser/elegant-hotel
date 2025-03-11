@@ -4,7 +4,7 @@ import { jwtVerify } from 'jose'
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|auth/login|auth/register).*)'
+    '/((?!api|_next/static|_next/image|favicon.ico|auth/login|auth/register|admin).*)'
   ]
 }
 
