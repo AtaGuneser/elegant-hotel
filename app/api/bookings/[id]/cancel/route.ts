@@ -1,18 +1,21 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-
 import { ObjectId } from 'mongodb'
 import clientPromise from '@/app/lib/db'
-import { authOptions } from '@/app/lib/auth'
+import { verifyAuth } from '@/app/lib/auth'
 
 export async function PUT (
   req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) {
+    const token = req.headers.get('Authorization')?.replace('Bearer ', '')
+    if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const payload = await verifyAuth(token)
+    if (!payload || !payload.sub) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
     const client = await clientPromise
@@ -21,7 +24,7 @@ export async function PUT (
     // Find booking and check if it belongs to the user
     const booking = await db.collection('bookings').findOne({
       _id: new ObjectId(params.id),
-      userId: session.user.id
+      userId: payload.sub
     })
 
     if (!booking) {
